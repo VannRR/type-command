@@ -1,5 +1,6 @@
 import { HexColor, Palette } from "./types";
 
+/*
 const ALL_COLORS: HexColor[][] = [
   [
     "#000000",
@@ -203,6 +204,7 @@ export function generateRandomPalette(): Palette {
 
   return palette;
 }
+*/
 
 const PALETTES: Palette[] = [
   {
