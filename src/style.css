@@ -1,0 +1,16 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #222;
+  min-width: 100vw;
+  min-height: 100vh;
+}
+
+#app {
+  display: grid;
+}
+
+canvas {
+  grid-row: 1;
+  grid-column: 1;
+}
