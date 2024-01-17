@@ -173,6 +173,37 @@ export default class GameState {
     }
   }
 
+  increaseScore(multiplier: number): void {
+    if (this.score === MAX_SCORE) {
+      return;
+    }
+    const pendingScore = this.score + BASE_SCORE_INCREMENT * multiplier;
+    if (pendingScore < MAX_SCORE) {
+      this.score = pendingScore;
+    } else {
+      this.score = MAX_SCORE;
+    }
+  }
+
+  drawAndTargetPlayer(
+    layers: Layers,
+    player: Player,
+    missiles: Missiles,
+    palette: Palette
+  ): void {
+    if (this.frame % this.missileSpeed === 0) {
+      player.drawCrossHair(layers.missile, missiles, palette.text, palette.missileHead);
+    }
+    if (this.frame % ANIMATION_SPEED === 0) {
+      player.drawTurret(layers.foreground, palette.text, palette.missileHead);
+      player.toggleFlash();
+    }
+    const multiplier = player.target(missiles);
+    if (multiplier !== null) {
+      this.increaseScore(multiplier);
+    }
+  }
+
   drawDebugInfo(layer: Layer | null): void {
     if (layer === null) {
       return;
@@ -221,18 +252,6 @@ export default class GameState {
     }
   }
 
-  increaseScore(multiplier: number | null): void {
-    if (multiplier === null || this.score === MAX_SCORE) {
-      return;
-    }
-    let pendingScore = this.score + (BASE_SCORE_INCREMENT * multiplier);
-    if (pendingScore < MAX_SCORE) {
-      this.score = pendingScore;
-    } else {
-      this.score = MAX_SCORE;
-    }
-  }
-
   advanceFrame(
     layers: Layers,
     player: Player,
@@ -262,10 +281,9 @@ export default class GameState {
       palette
     );
     this.drawForeground(layers.foreground, player, cities, palette);
-    const multiplier = player.match(missiles);
+    this.drawAndTargetPlayer(layers, player, missiles, palette);
     this.drawDebugInfo(layers.debug);
     this.checkGameOver(cities);
-    this.increaseScore(multiplier);
     this.frame += 1;
   }
 }

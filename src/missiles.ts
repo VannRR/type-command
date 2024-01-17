@@ -77,6 +77,10 @@ export default class Missile {
     this.word = getRandomWord(difficulty);
   }
 
+  getCoords(): Vector {
+    return this.coords;
+  }
+
   getWord(): string {
     return this.word;
   }
@@ -181,8 +185,16 @@ export class Missiles {
     }
   }
 
-  getAll(): Missile[] {
-    return this.all;
+  getCoordsByIndex(index: number): Vector {
+    return this.all[index].getCoords();
+  }
+
+  getWords(): string[] {
+    const words = [];
+    for (const missile of this.all) {
+      words.push(missile.getWord());
+    }
+    return words;
   }
 
   remove(index: number): void {
