@@ -1,21 +1,17 @@
 export default class Clock {
-  private func: () => void;
-  private lag: number;
-  private on: boolean;
-  private fpsInterval: number;
-  private now: null | number;
-  private then: null | number;
-  private elapsed: null | number;
-  private verb: boolean;
-  constructor(func: () => void, fps: number, lag = 12) {
+  private readonly func: () => void;
+  private readonly lag: number;
+  private readonly fpsInterval: number;
+  private on: boolean = false;
+  private now: number = 0;
+  private then: number = 0;
+  private elapsed: number = 0;
+  private debugMode: boolean = false;
+
+  constructor(func: () => void, fps: number, lag: number = 12) {
     this.func = func;
     this.lag = lag;
-    this.on = false;
     this.fpsInterval = 1000 / fps;
-    this.now = null;
-    this.then = null;
-    this.elapsed = null;
-    this.verb = false;
   }
 
   private init(): void {
@@ -23,7 +19,7 @@ export default class Clock {
   }
 
   private step(): void {
-    if (this.then === null) {
+    if (this.then === 0) {
       return;
     }
     this.now = Date.now();
@@ -31,7 +27,7 @@ export default class Clock {
     if (this.elapsed + this.lag > this.fpsInterval || this.on === false) {
       this.func();
       this.then = this.now;
-      if (this.verb === true) {
+      if (this.debugMode === true) {
         console.log(
           "Clock debug:\n" +
             `lag = ${this.lag}\n` +
@@ -46,17 +42,21 @@ export default class Clock {
     }
   }
 
-  toggle(): void {
-    if (this.on === true) {
-      this.on = false;
-    } else {
+  start(): void {
+    if (this.on === false) {
       this.on = true;
       this.init();
       this.step();
     }
   }
 
-  debug(): void {
-    this.verb = !this.verb;
+  stop(): void {
+    if (this.on === true) {
+      this.on = false;
+    }
+  }
+
+  toggleDebugMode(): void {
+    this.debugMode = !this.debugMode;
   }
 }

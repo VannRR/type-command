@@ -1,29 +1,27 @@
-import { drawWord, CHAR_PIXEL_HEIGHT } from "./drawWord";
-import {
-  WIDTH,
-  HEIGHT,
-  PIXEL_SIZE,
-  PIXEL_SIZE_SMALL,
-  WIDTH_MIDDLE,
-} from "./main";
+import { drawWord, CharConstants } from "./drawWord";
+import { RenderConstants } from "./main";
 import { Missiles } from "./missiles";
-import { HexColor, Layer, Vector } from "./types";
+import { HexColor, Layer, Vector, Option } from "./types";
 
 const MAX_INPUT_LENGTH = 12;
 
 export default class Player {
-  private prevInput: string | null;
+  private prevInput: Option<string>;
   private currentInput: string;
-  private submittedInput: string | null;
+  private submittedInput: Option<string>;
   private inputY: number;
   private flash: boolean;
   private turretCoords: Vector;
   constructor(appDiv: HTMLDivElement) {
     this.inputY =
-      HEIGHT - PIXEL_SIZE * 5 - PIXEL_SIZE_SMALL * CHAR_PIXEL_HEIGHT;
+      RenderConstants.HEIGHT -
+      RenderConstants.PIXEL_SIZE * 5 -
+      RenderConstants.PIXEL_SIZE_SMALL * CharConstants.PIXEL_HEIGHT;
     this.turretCoords = {
-      x: Math.floor(WIDTH_MIDDLE - PIXEL_SIZE * 1.5),
-      y: HEIGHT - PIXEL_SIZE * 22
+      x: Math.floor(
+        RenderConstants.WIDTH_MIDDLE - RenderConstants.PIXEL_SIZE * 1.5
+      ),
+      y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * 22,
     };
     this.prevInput = null;
     this.currentInput = "";
@@ -63,24 +61,24 @@ export default class Player {
     if (this.prevInput !== this.currentInput) {
       layer.clearRect(
         0,
-        this.inputY - PIXEL_SIZE_SMALL * 2,
-        WIDTH,
-        12 * PIXEL_SIZE_SMALL
+        this.inputY - RenderConstants.PIXEL_SIZE_SMALL * 2,
+        RenderConstants.WIDTH,
+        12 * RenderConstants.PIXEL_SIZE_SMALL
       );
       drawWord(
         layer,
         backgroundColor,
         textColor,
-        WIDTH_MIDDLE,
+        RenderConstants.WIDTH_MIDDLE,
         this.inputY,
-        PIXEL_SIZE_SMALL,
+        RenderConstants.PIXEL_SIZE_SMALL,
         this.currentInput
       );
       this.prevInput = this.currentInput;
     }
   }
 
-  findBestMatch(words: string[]): { word: string; index: number } | null {
+  findBestMatch(words: string[]): Option<{ word: string; index: number }> {
     if (this.currentInput.length < 1) {
       return null;
     }
@@ -118,7 +116,7 @@ export default class Player {
     }
   }
 
-  target(missiles: Missiles): number | null {
+  target(missiles: Missiles): Option<number> {
     if (this.submittedInput === null) {
       return null;
     }
@@ -146,8 +144,8 @@ export default class Player {
     layer.fillRect(
       this.turretCoords.x,
       this.turretCoords.y,
-      PIXEL_SIZE * 3,
-      PIXEL_SIZE
+      RenderConstants.PIXEL_SIZE * 3,
+      RenderConstants.PIXEL_SIZE
     );
   }
 
@@ -167,16 +165,16 @@ export default class Player {
 
     layer.fillStyle = this.flash ? missileHeadColor : textColor;
     layer.fillRect(
-      missileCoords.x - PIXEL_SIZE,
+      missileCoords.x - RenderConstants.PIXEL_SIZE,
       missileCoords.y,
-      PIXEL_SIZE * 3,
-      PIXEL_SIZE
+      RenderConstants.PIXEL_SIZE * 3,
+      RenderConstants.PIXEL_SIZE
     );
     layer.fillRect(
       missileCoords.x,
-      missileCoords.y - PIXEL_SIZE,
-      PIXEL_SIZE,
-      PIXEL_SIZE * 3
+      missileCoords.y - RenderConstants.PIXEL_SIZE,
+      RenderConstants.PIXEL_SIZE,
+      RenderConstants.PIXEL_SIZE * 3
     );
   }
 }

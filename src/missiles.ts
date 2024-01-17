@@ -2,20 +2,16 @@ import { City } from "./cities.ts";
 import Ground from "./ground.ts";
 import Hill from "./hill.ts";
 import { drawWord } from "./drawWord.ts";
-import {
-  HEIGHT,
-  PIXEL_SIZE,
-  PIXEL_SIZE_SMALL,
-  PIXEL_WIDTH,
-  WIDTH,
-} from "./main.ts";
+import { RenderConstants } from "./main.ts";
 import WORDS from "./words.json";
 import { HexColor, Layer, Vector } from "./types.ts";
 
-const INITIAL_Y = 14;
-const PIXEL_GAP_MISSLE_TO_WORD = 18;
-const PIXEL_GAP_MISSLE_TO_TRAIL = 3;
-const ANGLED_MISSILE_ABS_COS = 0.23;
+enum MissileConstants {
+  INITIAL_Y = 14,
+  PIXEL_GAP_TO_WORD = 18,
+  PIXEL_GAP_TO_TRAIL = 3,
+  ANGLED_ABS_COS = 0.23,
+}
 
 function generateRandomVector(x: number): Vector {
   const angle = (Math.random() * Math.PI) / 2 - Math.PI / 4 - 0.5 * Math.PI;
@@ -23,8 +19,8 @@ function generateRandomVector(x: number): Vector {
   let vecX = Math.cos(angle);
 
   if (
-    vecX * 25 * PIXEL_SIZE + x > PIXEL_WIDTH ||
-    vecX * 25 * PIXEL_SIZE + x < 0
+    vecX * 25 * RenderConstants.PIXEL_SIZE + x > RenderConstants.PIXEL_WIDTH ||
+    vecX * 25 * RenderConstants.PIXEL_SIZE + x < 0
   ) {
     vecX = -vecX;
   }
@@ -51,13 +47,13 @@ function getRandomWord(difficulty: number): string {
 }
 
 export default class Missile {
+  private readonly width: number = RenderConstants.PIXEL_SIZE;
+  private readonly height: number = RenderConstants.PIXEL_SIZE;
+  private movementBuffer: Vector = { x: 0, y: 0 };
+  private trail: Vector[] = [];
   private movementVector: Vector;
   private coords: Vector;
-  private trail: Vector[];
   private word: string;
-  width: number;
-  height: number;
-  movementBuffer: Vector;
 
   constructor(
     x: number,
@@ -66,14 +62,10 @@ export default class Missile {
     difficulty: number
   ) {
     this.coords = {
-      x: x * PIXEL_SIZE,
-      y: y * PIXEL_SIZE,
+      x: x * RenderConstants.PIXEL_SIZE,
+      y: y * RenderConstants.PIXEL_SIZE,
     };
-    this.width = PIXEL_SIZE;
-    this.height = PIXEL_SIZE;
-    this.movementBuffer = { x: 0, y: 0 };
     this.movementVector = movementVector;
-    this.trail = [];
     this.word = getRandomWord(difficulty);
   }
 
@@ -106,27 +98,37 @@ export default class Missile {
   ): void {
     layer.fillStyle = missileTrailColor;
     this.trail.push({ x: this.coords.x, y: this.coords.y });
-    for (let i = this.trail.length - PIXEL_GAP_MISSLE_TO_TRAIL; i > 0; i--) {
+    for (
+      let i = this.trail.length - MissileConstants.PIXEL_GAP_TO_TRAIL;
+      i > 0;
+      i--
+    ) {
       const prev = this.trail[i];
       layer.fillRect(prev.x, prev.y, this.width, this.height);
-      if (i === this.trail.length - PIXEL_GAP_MISSLE_TO_WORD) {
+    }
+    for (
+      let i = this.trail.length - MissileConstants.PIXEL_GAP_TO_TRAIL;
+      i > 0;
+      i--
+    ) {
+      const prev = this.trail[i];
+      if (i === this.trail.length - MissileConstants.PIXEL_GAP_TO_WORD) {
         drawWord(
           layer,
           null,
           textColor,
           prev.x,
           prev.y,
-          PIXEL_SIZE_SMALL,
+          RenderConstants.PIXEL_SIZE_SMALL,
           this.word
         );
-        layer.fillStyle = missileTrailColor;
       }
     }
     layer.fillStyle = missileHeadColor;
     let missileBackX = this.coords.x;
-    if (this.movementVector.x <= -ANGLED_MISSILE_ABS_COS) {
+    if (this.movementVector.x <= -MissileConstants.ANGLED_ABS_COS) {
       missileBackX += this.width;
-    } else if (this.movementVector.x >= ANGLED_MISSILE_ABS_COS) {
+    } else if (this.movementVector.x >= MissileConstants.ANGLED_ABS_COS) {
       missileBackX -= this.width;
     }
     layer.fillRect(
@@ -139,7 +141,7 @@ export default class Missile {
   }
 
   checkCollision(other: Ground | Hill | City): boolean {
-    if (this.coords.y > HEIGHT) {
+    if (this.coords.y > RenderConstants.HEIGHT) {
       return true;
     }
     const otherBounds = other.getBounds();
@@ -171,10 +173,10 @@ export class Missiles {
   }
 
   spawn(difficulty: number): void {
-    const min = PIXEL_WIDTH * 0.1;
-    const max = PIXEL_WIDTH * 0.9;
+    const min = RenderConstants.PIXEL_WIDTH * 0.1;
+    const max = RenderConstants.PIXEL_WIDTH * 0.9;
     const x = Math.floor(Math.random() * (max - min) + min);
-    const y = INITIAL_Y;
+    const y = MissileConstants.INITIAL_Y;
     const movementVector = generateRandomVector(x);
     this.all.push(new Missile(x, y, movementVector, difficulty));
   }
@@ -211,7 +213,7 @@ export class Missiles {
     missileHeadColor: HexColor,
     textColor: HexColor
   ): void {
-    layer.clearRect(0, 0, WIDTH, HEIGHT);
+    layer.clearRect(0, 0, RenderConstants.WIDTH, RenderConstants.HEIGHT);
     this.all.forEach((missile) => {
       missile.draw(layer, missileTrailColor, missileHeadColor, textColor);
     });

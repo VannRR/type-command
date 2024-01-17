@@ -29,5 +29,7 @@ module.exports = {
         "@typescript-eslint"
     ],
     "rules": {
+      "@typescript-eslint/strict-boolean-expressions": "error",
+      "@typescript-eslint/no-explicit-any": "error"
     }
 }

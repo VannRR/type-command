@@ -1,11 +1,14 @@
-import { HEIGHT, PIXEL_SIZE, WIDTH } from "./main.ts";
-import { Bounds, HexColor, Layer, Vector } from "./types.ts";
+import { RenderConstants } from "./main.ts";
+import { Bounds, PixelGrid, HexColor, Layer, Vector, Option } from "./types.ts";
+import { drawGrid } from "./utility.ts";
 
-const INITIAL_Y = 21;
+enum CityConstants {
+  INITIAL_Y = 21,
+  PIXEL_WIDTH = 8,
+  PIXEL_HEIGHT = 6,
+}
 
-const CITY_PIXEL_WIDTH = 8;
-const CITY_PIXEL_HEIGHT = 6;
-const CITY_FRAMES = [
+const CITY_FRAMES: PixelGrid[] = [
   [
     [0, 0, 1, 0, 0, 0, 1, 0],
     [0, 0, 1, 1, 0, 1, 1, 0],
@@ -49,18 +52,21 @@ const CITY_FRAMES = [
 ];
 
 export class City {
-  private frame: number;
-  private updated: boolean;
-  private coords: Vector;
+  private readonly coords: Vector;
+  private readonly width: number =
+    CityConstants.PIXEL_WIDTH * RenderConstants.PIXEL_SIZE;
+  private readonly height: number =
+    CityConstants.PIXEL_HEIGHT * RenderConstants.PIXEL_SIZE;
+  private frame: number = 0;
+  private updated: boolean = false;
 
-  constructor(
-    x: number,
-    private width = CITY_PIXEL_WIDTH * PIXEL_SIZE,
-    private height = CITY_PIXEL_HEIGHT * PIXEL_SIZE
-  ) {
-    this.coords = { x, y: HEIGHT - PIXEL_SIZE * INITIAL_Y };
-    this.frame = 0;
-    this.updated = false;
+  constructor(x: number) {
+    this.coords = {
+      x,
+      y:
+        RenderConstants.HEIGHT -
+        RenderConstants.PIXEL_SIZE * CityConstants.INITIAL_Y,
+    };
   }
 
   reset(): void {
@@ -93,24 +99,18 @@ export class City {
         ? cityColor
         : mushroomCloudColor;
     layer.clearRect(this.coords.x, this.coords.y, this.width, this.height);
-    CITY_FRAMES[this.frame].forEach((row, j) => {
-      row.forEach((cell, i) => {
-        if (cell === 1) {
-          layer.fillRect(
-            i * PIXEL_SIZE + this.coords.x,
-            j * PIXEL_SIZE + this.coords.y,
-            PIXEL_SIZE,
-            PIXEL_SIZE
-          );
-        }
-      });
-    });
+    drawGrid(
+      layer,
+      this.coords,
+      RenderConstants.PIXEL_SIZE,
+      CITY_FRAMES[this.frame]
+    );
     if (this.frame !== 0) {
       this.advanceFrame();
     }
   }
 
-  getBounds(): Bounds[] | null {
+  getBounds(): Option<Bounds[]> {
     if (this.frame === 0) {
       return [
         {
@@ -133,15 +133,15 @@ export class City {
 }
 
 export class Cities {
-  private cities: City[];
+  private readonly cities: City[];
   constructor() {
     this.cities = [
-      new City(Math.floor(WIDTH * 0.104)),
-      new City(Math.floor(WIDTH * 0.223)),
-      new City(Math.floor(WIDTH * 0.34)),
-      new City(Math.floor(WIDTH * 0.615)),
-      new City(Math.floor(WIDTH * 0.734)),
-      new City(Math.floor(WIDTH * 0.855)),
+      new City(Math.floor(RenderConstants.WIDTH * 0.104)),
+      new City(Math.floor(RenderConstants.WIDTH * 0.223)),
+      new City(Math.floor(RenderConstants.WIDTH * 0.34)),
+      new City(Math.floor(RenderConstants.WIDTH * 0.615)),
+      new City(Math.floor(RenderConstants.WIDTH * 0.734)),
+      new City(Math.floor(RenderConstants.WIDTH * 0.855)),
     ];
   }
 
@@ -157,7 +157,7 @@ export class Cities {
     }
   }
 
-  areAlive(): boolean {
+  areStanding(): boolean {
     for (const city of this.cities) {
       if (city.isAlive()) {
         return true;

@@ -1,10 +1,10 @@
-import { DEBUG, HEIGHT, WIDTH } from "./main.ts";
+import { RenderConstants, DEBUG } from "./main.ts";
 import { Layer, Layers } from "./types.ts";
 
 function createLayer(appDiv: HTMLDivElement): Layer {
   const cvs = document.createElement("canvas");
-  cvs.width = WIDTH;
-  cvs.height = HEIGHT;
+  cvs.width = RenderConstants.WIDTH;
+  cvs.height = RenderConstants.HEIGHT;
 
   const fallbackContent = document.createElement("p");
   fallbackContent.textContent =

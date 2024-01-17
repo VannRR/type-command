@@ -2,6 +2,10 @@ export type Layer = CanvasRenderingContext2D;
 
 export type HexColor = `#${string}`;
 
+export type PixelGrid = number[][];
+
+export type Option<T> = T | null;
+
 export interface Bounds {
   x: number;
   y: number;
@@ -28,5 +32,5 @@ export interface Layers {
   background: Layer;
   missile: Layer;
   foreground: Layer;
-  debug: Layer | null;
+  debug: Option<Layer>;
 }

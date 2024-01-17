@@ -1,9 +1,12 @@
-import { PIXEL_SIZE } from "./main.ts";
-import { HexColor, Layer, Vector } from "./types.ts";
+import { RenderConstants } from "./main.ts";
+import { HexColor, Layer, PixelGrid, Vector } from "./types.ts";
+import { drawGrid } from "./utility.ts";
 
-const EXPLOSION_PIXEL_WIDTH = 11;
-const EXPLOSION_PIXEL_HEIGHT = 11;
-const EXPLOSION_FRAMES = [
+enum ExplosionConstants {
+  PIXEL_WIDTH = 11,
+  PIXEL_HEIGHT = 11,
+}
+const EXPLOSION_FRAMES: PixelGrid[] = [
   [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -72,15 +75,22 @@ const EXPLOSION_FRAMES = [
 ];
 
 export default class Explosion {
-  private frame: number;
-  private coords: Vector;
-  private width: number;
-  private height: number;
+  private readonly coords: Vector;
+  private readonly width: number =
+    ExplosionConstants.PIXEL_WIDTH * RenderConstants.PIXEL_SIZE;
+  private readonly height: number =
+    ExplosionConstants.PIXEL_HEIGHT * RenderConstants.PIXEL_SIZE;
+  private frame: number = 0;
+
   constructor(x: number, y: number) {
-    this.frame = 0;
-    this.coords = { x: x * PIXEL_SIZE, y: y * PIXEL_SIZE };
-    this.width = EXPLOSION_PIXEL_WIDTH * PIXEL_SIZE;
-    this.height = EXPLOSION_PIXEL_HEIGHT * PIXEL_SIZE;
+    if (typeof x !== "number" || typeof y !== "number") {
+      throw new Error("Coordinates must be numbers");
+    }
+
+    this.coords = {
+      x: x * RenderConstants.PIXEL_SIZE,
+      y: y * RenderConstants.PIXEL_SIZE,
+    };
   }
 
   draw(
@@ -91,21 +101,17 @@ export default class Explosion {
     if (this.frame >= EXPLOSION_FRAMES.length) {
       return;
     }
+
     layer.fillStyle =
       this.frame % 2 === 0 ? mushroomCloudColor : missileHeadColor;
     layer.clearRect(this.coords.x, this.coords.y, this.width, this.height);
-    EXPLOSION_FRAMES[this.frame].forEach((row, j) => {
-      row.forEach((cell, i) => {
-        if (cell === 1) {
-          layer.fillRect(
-            i * PIXEL_SIZE + this.coords.x,
-            j * PIXEL_SIZE + this.coords.y,
-            PIXEL_SIZE,
-            PIXEL_SIZE
-          );
-        }
-      });
-    });
+    drawGrid(
+      layer,
+      this.coords,
+      RenderConstants.PIXEL_SIZE,
+      EXPLOSION_FRAMES[this.frame]
+    );
+
     this.frame += 1;
   }
 }

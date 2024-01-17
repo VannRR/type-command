@@ -1,7 +1,11 @@
-import { HexColor, Layer } from "./types.ts";
+import { HexColor, Layer, Option } from "./types.ts";
+import { drawGrid } from "./utility.ts";
 
-export const CHAR_PIXEL_WIDTH = 7;
-export const CHAR_PIXEL_HEIGHT = 7;
+export enum CharConstants {
+  PIXEL_WIDTH = 7,
+  PIXEL_HEIGHT = 7,
+}
+
 const CHARS = new Map([
   [
     "A",
@@ -317,54 +321,61 @@ const CHARS = new Map([
   ],
 ]);
 
+const WORD_MIDDLE_FACTOR = 0.55;
+
 export function drawWord(
   layer: Layer,
-  backgroundColor: HexColor | null,
+  backgroundColor: Option<HexColor>,
   textColor: HexColor,
   x: number,
   y: number,
   pixelSize: number,
   word: string
 ): void {
+  if (typeof word !== "string") {
+    throw new Error("Word must be a string");
+  }
+
   if (word.length === 0) {
     return;
   }
-  const charWidth = CHAR_PIXEL_WIDTH * pixelSize;
-  const charHeight = CHAR_PIXEL_HEIGHT * pixelSize;
-  const wordMiddle = Math.floor(word.length * charWidth * 0.55);
+
+  const charWidth = CharConstants.PIXEL_WIDTH * pixelSize;
+  const charHeight = CharConstants.PIXEL_HEIGHT * pixelSize;
+  const wordMiddle = Math.floor(word.length * charWidth * WORD_MIDDLE_FACTOR);
+
   if (backgroundColor === null) {
     layer.clearRect(
-      x - wordMiddle - pixelSize,
-      y - (pixelSize * 2),
-      (word.length * charWidth) + (pixelSize * word.length) + pixelSize * 2,
-      charHeight + (pixelSize * 4)
+      x - wordMiddle - pixelSize * 3,
+      y - pixelSize * 2,
+      word.length * charWidth + pixelSize * word.length + pixelSize * 5,
+      charHeight + pixelSize * 4
     );
   } else {
     layer.fillStyle = backgroundColor;
     layer.fillRect(
-      x - wordMiddle - pixelSize,
-      y - (pixelSize * 2),
-      (word.length * charWidth) + (pixelSize * word.length) + pixelSize * 2,
-      charHeight + (pixelSize * 4)
+      x - wordMiddle - pixelSize * 3,
+      y - pixelSize * 2,
+      word.length * charWidth + pixelSize * word.length + pixelSize * 5,
+      charHeight + pixelSize * 4
     );
   }
+
   layer.fillStyle = textColor;
+
   for (let l = 0; l < word.length; l++) {
     const char = CHARS.get(word[l]);
     if (char === undefined) {
       continue;
     }
-    char.forEach((row, j) => {
-      row.forEach((cell, i) => {
-        if (cell === 1) {
-          layer.fillRect(
-            i * pixelSize + x + l * charWidth + l * pixelSize - wordMiddle,
-            j * pixelSize + y,
-            pixelSize,
-            pixelSize
-          );
-        }
-      });
-    });
+    drawGrid(
+      layer,
+      {
+        x: x + l * charWidth + l * pixelSize - wordMiddle,
+        y: y,
+      },
+      pixelSize,
+      char
+    );
   }
 }

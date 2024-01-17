@@ -1,28 +1,28 @@
-import { PIXEL_SIZE, WIDTH, HEIGHT } from "./main.ts";
+import { RenderConstants } from "./main.ts";
 import { Bounds, HexColor, Layer } from "./types.ts";
 
 export default class Ground {
-  private bounds: Bounds[];
+  private readonly bounds: Bounds[];
 
   constructor() {
     this.bounds = [
       {
         x: 0,
-        y: HEIGHT - 15 * PIXEL_SIZE,
-        width: WIDTH,
-        height: 15 * PIXEL_SIZE,
+        y: RenderConstants.HEIGHT - 15 * RenderConstants.PIXEL_SIZE,
+        width: RenderConstants.WIDTH,
+        height: 15 * RenderConstants.PIXEL_SIZE,
       },
       {
         x: 0,
-        y: HEIGHT - 20 * PIXEL_SIZE,
-        width: 9 * PIXEL_SIZE,
-        height: 5 * PIXEL_SIZE,
+        y: RenderConstants.HEIGHT - 20 * RenderConstants.PIXEL_SIZE,
+        width: 9 * RenderConstants.PIXEL_SIZE,
+        height: 5 * RenderConstants.PIXEL_SIZE,
       },
       {
-        x: WIDTH - 9 * PIXEL_SIZE,
-        y: HEIGHT - 20 * PIXEL_SIZE,
-        width: 9 * PIXEL_SIZE,
-        height: 5 * PIXEL_SIZE,
+        x: RenderConstants.WIDTH - 9 * RenderConstants.PIXEL_SIZE,
+        y: RenderConstants.HEIGHT - 20 * RenderConstants.PIXEL_SIZE,
+        width: 9 * RenderConstants.PIXEL_SIZE,
+        height: 5 * RenderConstants.PIXEL_SIZE,
       },
     ];
   }

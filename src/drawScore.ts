@@ -1,9 +1,12 @@
-import { WIDTH, PIXEL_SIZE, WIDTH_MIDDLE } from "./main.ts";
-import { HexColor, Layer } from "./types.ts";
+import { RenderConstants } from "./main.ts";
+import { drawGrid } from "./utility.ts";
+import { HexColor, Layer, PixelGrid } from "./types.ts";
 
-const DIGITS_PIXEL_WIDTH = 7;
-const DIGITS_PIXEL_HEIGHT = 7;
-const DIGITS = [
+enum DigitsConstants {
+  PIXEL_WIDTH = 7,
+  PIXEL_HEIGHT = 7,
+}
+const DIGITS: PixelGrid[] = [
   [
     [0, 1, 1, 1, 1, 1, 0],
     [1, 1, 0, 0, 0, 1, 1],
@@ -96,31 +99,46 @@ const DIGITS = [
   ],
 ];
 
+const SCORE_MIDDLE_FACTOR = 0.55;
+
 export default function drawScore(
   layer: Layer,
   textColor: HexColor,
   score: number
 ): void {
-  const digitWidth = DIGITS_PIXEL_WIDTH * PIXEL_SIZE;
-  const digitHeight = DIGITS_PIXEL_HEIGHT * PIXEL_SIZE;
+  if (typeof score !== "number") {
+    throw new Error("Score must be a number");
+  }
+
+  const digitWidth = DigitsConstants.PIXEL_WIDTH * RenderConstants.PIXEL_SIZE;
+  const digitHeight = DigitsConstants.PIXEL_HEIGHT * RenderConstants.PIXEL_SIZE;
   const scoreString = score.toString();
   const scoreMiddle =
-    WIDTH_MIDDLE - scoreString.length * 0.55 * digitWidth - PIXEL_SIZE;
+    RenderConstants.WIDTH_MIDDLE -
+    scoreString.length * SCORE_MIDDLE_FACTOR * digitWidth -
+    RenderConstants.PIXEL_SIZE;
   layer.fillStyle = textColor;
-  layer.clearRect(0, PIXEL_SIZE, WIDTH, digitHeight);
+  layer.clearRect(
+    0,
+    RenderConstants.PIXEL_SIZE,
+    RenderConstants.WIDTH,
+    digitHeight + RenderConstants.PIXEL_SIZE
+  );
+
   for (let d = 0; d < scoreString.length; d++) {
     const digit = Number(scoreString[d]);
-    DIGITS[digit].forEach((row, j) => {
-      row.forEach((cell, i) => {
-        if (cell === 1) {
-          layer.fillRect(
-            i * PIXEL_SIZE + d * digitWidth + d * PIXEL_SIZE + scoreMiddle,
-            j * PIXEL_SIZE + PIXEL_SIZE,
-            PIXEL_SIZE,
-            PIXEL_SIZE
-          );
-        }
-      });
-    });
+    drawGrid(
+      layer,
+      {
+        x:
+          RenderConstants.PIXEL_SIZE +
+          d * digitWidth +
+          d * RenderConstants.PIXEL_SIZE +
+          scoreMiddle,
+        y: RenderConstants.PIXEL_SIZE + RenderConstants.PIXEL_SIZE,
+      },
+      RenderConstants.PIXEL_SIZE,
+      DIGITS[digit]
+    );
   }
 }
