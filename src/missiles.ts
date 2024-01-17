@@ -1,7 +1,7 @@
 import { City } from "./cities.ts";
 import Ground from "./ground.ts";
 import Hill from "./hill.ts";
-import drawWord from "./drawWord.ts";
+import { drawWord } from "./drawWord.ts";
 import {
   HEIGHT,
   PIXEL_SIZE,
@@ -35,9 +35,15 @@ function generateRandomVector(x: number): Vector {
 }
 
 function getRandomWord(difficulty: number): string {
-  let charCount = Math.min(difficulty - 1, WORDS.length - 1);
-  if (difficulty > 1 && difficulty % 2 == 0) {
-    charCount -= Math.round(Math.random());
+  let charCount = difficulty - 1;
+  for (let i = charCount; i >= 0; i--) {
+    if (Math.random() > 0.5) {
+      break;
+    }
+    charCount = i;
+  }
+  if (charCount > WORDS.length - 1) {
+    charCount = WORDS.length - 1;
   }
   const currentWords = WORDS[charCount];
   const randomWordIndex = Math.floor(Math.random() * currentWords.length);
@@ -71,6 +77,10 @@ export default class Missile {
     this.word = getRandomWord(difficulty);
   }
 
+  getWord(): string {
+    return this.word;
+  }
+
   move(): void {
     this.movementBuffer.x += this.movementVector.x;
     this.movementBuffer.y += this.movementVector.y;
@@ -98,12 +108,12 @@ export default class Missile {
       if (i === this.trail.length - PIXEL_GAP_MISSLE_TO_WORD) {
         drawWord(
           layer,
+          null,
           textColor,
           prev.x,
           prev.y,
           PIXEL_SIZE_SMALL,
-          this.word,
-          true
+          this.word
         );
         layer.fillStyle = missileTrailColor;
       }
@@ -151,9 +161,9 @@ export default class Missile {
 }
 
 export class Missiles {
-  private missiles: Missile[];
+  private all: Missile[];
   constructor() {
-    this.missiles = [];
+    this.all = [];
   }
 
   spawn(difficulty: number): void {
@@ -162,17 +172,25 @@ export class Missiles {
     const x = Math.floor(Math.random() * (max - min) + min);
     const y = INITIAL_Y;
     const movementVector = generateRandomVector(x);
-    this.missiles.push(new Missile(x, y, movementVector, difficulty));
+    this.all.push(new Missile(x, y, movementVector, difficulty));
   }
 
   move(): void {
-    for (const missile of this.missiles) {
+    for (const missile of this.all) {
       missile.move();
     }
   }
 
+  getAll(): Missile[] {
+    return this.all;
+  }
+
+  remove(index: number): void {
+    this.all.splice(index, 1);
+  }
+
   reset(): void {
-    this.missiles = [];
+    this.all = [];
   }
 
   draw(
@@ -182,18 +200,18 @@ export class Missiles {
     textColor: HexColor
   ): void {
     layer.clearRect(0, 0, WIDTH, HEIGHT);
-    this.missiles.forEach((missile) => {
+    this.all.forEach((missile) => {
       missile.draw(layer, missileTrailColor, missileHeadColor, textColor);
     });
   }
 
   checkCollision(other: Ground | Hill | City): void {
     const survivingMissiles: Missile[] = [];
-    for (const missile of this.missiles) {
+    for (const missile of this.all) {
       if (!missile.checkCollision(other)) {
         survivingMissiles.push(missile);
       }
     }
-    this.missiles = survivingMissiles;
+    this.all = survivingMissiles;
   }
 }

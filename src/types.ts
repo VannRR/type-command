@@ -26,7 +26,7 @@ export interface Palette {
 
 export interface Layers {
   background: Layer;
-  city: Layer;
   missile: Layer;
+  foreground: Layer;
   debug: Layer | null;
 }

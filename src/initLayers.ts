@@ -19,16 +19,11 @@ function createLayer(appDiv: HTMLDivElement): Layer {
   return ctx;
 }
 
-export default function initLayers(): Layers {
-  const appDiv = document.querySelector<HTMLDivElement>("#app");
-  if (!appDiv) {
-    throw new Error("No div with id 'app' available.");
-  }
-
+export default function initLayers(appDiv: HTMLDivElement): Layers {
   return {
     background: createLayer(appDiv),
-    city: createLayer(appDiv),
     missile: createLayer(appDiv),
+    foreground: createLayer(appDiv),
     debug: DEBUG ? createLayer(appDiv) : null,
   };
 }

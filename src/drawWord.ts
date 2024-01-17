@@ -1,7 +1,7 @@
 import { HexColor, Layer } from "./types.ts";
 
-const CHAR_PIXEL_WIDTH = 7;
-const CHAR_PIXEL_HEIGHT = 7;
+export const CHAR_PIXEL_WIDTH = 7;
+export const CHAR_PIXEL_HEIGHT = 7;
 const CHARS = new Map([
   [
     "A",
@@ -317,24 +317,35 @@ const CHARS = new Map([
   ],
 ]);
 
-export default function drawWord(
+export function drawWord(
   layer: Layer,
+  backgroundColor: HexColor | null,
   textColor: HexColor,
   x: number,
   y: number,
   pixelSize: number,
-  word: string,
-  clearRect: boolean
+  word: string
 ): void {
+  if (word.length === 0) {
+    return;
+  }
   const charWidth = CHAR_PIXEL_WIDTH * pixelSize;
   const charHeight = CHAR_PIXEL_HEIGHT * pixelSize;
-  const wordMiddle = word.length * charWidth * 0.55;
-  if (clearRect === true) {
+  const wordMiddle = Math.floor(word.length * charWidth * 0.55);
+  if (backgroundColor === null) {
     layer.clearRect(
-      x - wordMiddle - pixelSize * 2,
-      y - pixelSize * 2,
-      word.length * charWidth + pixelSize * 12,
-      charHeight + pixelSize * 4
+      x - wordMiddle - pixelSize,
+      y - (pixelSize * 2),
+      (word.length * charWidth) + (pixelSize * word.length) + pixelSize * 2,
+      charHeight + (pixelSize * 4)
+    );
+  } else {
+    layer.fillStyle = backgroundColor;
+    layer.fillRect(
+      x - wordMiddle - pixelSize,
+      y - (pixelSize * 2),
+      (word.length * charWidth) + (pixelSize * word.length) + pixelSize * 2,
+      charHeight + (pixelSize * 4)
     );
   }
   layer.fillStyle = textColor;

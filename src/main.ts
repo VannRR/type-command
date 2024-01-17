@@ -6,6 +6,7 @@ import { Missiles } from "./missiles.ts";
 import initLayers from "./initLayers.ts";
 import GameState from "./gameState.ts";
 import Clock from "./clock.ts";
+import Player from "./player.ts";
 
 // Render Constants
 export const HEIGHT = window.innerHeight > 360 ? window.innerHeight : 360;
@@ -23,8 +24,9 @@ export const DEBUG = true;
 
 // Game play Constants
 export const MAX_SCORE = 9999999;
+export const BASE_SCORE_INCREMENT = 100;
 export const START_ROUND = 1;
-export const ROUND_LENGTH = 15 * FPS;
+export const ROUND_LENGTH = 12 * FPS;
 export const MAX_ROUND = 99999;
 export const MIN_DIFFICULTY = 1;
 export const MAX_DIFFICULTY = 20;
@@ -39,12 +41,18 @@ export const SPAWN_INCREMENT =
 export const SPEED_INCREMENT =
   (SLOWEST_MISSILE_SPEED - FASTEST_MISSILE_SPEED) / (MAX_DIFFICULTY - 1);
 
-// Canvas layers
-const layers = initLayers();
+const appDiv = document.querySelector<HTMLDivElement>("#app");
+if (!appDiv) {
+  throw new Error("No div with id 'app' available.");
+}
+appDiv.focus();
+
+const layers = initLayers(appDiv);
 
 const gameState = new GameState();
 
 // Game objects
+const player = new Player(appDiv);
 const ground = new Ground();
 const hill = new Hill();
 const cities = new Cities();
@@ -52,6 +60,6 @@ const missiles = new Missiles();
 
 // Game loop
 const clock = new Clock(() => {
-  gameState.advanceFrame(layers, ground, hill, cities, missiles);
+  gameState.advanceFrame(layers, player, ground, hill, cities, missiles);
 }, FPS);
 clock.toggle();

@@ -1,17 +1,17 @@
 import { Cities } from "./cities";
 import drawScore from "./drawScore";
-import drawWord from "./drawWord";
+import { drawWord } from "./drawWord";
 import Ground from "./ground";
 import Hill from "./hill";
 import {
   ANIMATION_SPEED,
+  BASE_SCORE_INCREMENT,
   FASTEST_MISSILE_SPEED,
   FASTEST_SPAWN_RATE,
   HEIGHT,
   MAX_DIFFICULTY,
   MAX_ROUND,
   MAX_SCORE,
-  WIDTH_MIDDLE,
   MIN_DIFFICULTY,
   PIXEL_HEIGHT,
   PIXEL_SIZE,
@@ -23,16 +23,18 @@ import {
   SPEED_INCREMENT,
   START_ROUND,
   WIDTH,
-  HEIGHT_MIDDLE,
   MESSAGE_LENGTH,
+  WIDTH_MIDDLE,
+  HEIGHT_MIDDLE,
 } from "./main";
 import { Missiles } from "./missiles";
 import PALETTES from "./palettes";
+import Player from "./player";
 import { Layer, Layers, Palette } from "./types";
 
 const GRID_SIZE = 6;
 const GRID_COLOR = "green";
-const INFO_BACKGROUND_COLOR = "black";
+const INFO_BACKGROUND_COLOR = "#00000099";
 const INFO_COLOR = "#aaa";
 
 export default class GameState {
@@ -40,90 +42,82 @@ export default class GameState {
   private frame: number;
   private difficulty: number;
   private currentPalette: number;
-  private backgroundLayerIsDrawn: boolean;
   private missileSpeed: number;
   private spawnRate: number;
   private score: number;
   private gameOver: boolean;
+  private messageShown: boolean;
   constructor() {
     this.round = START_ROUND;
     this.frame = 0;
     this.difficulty = MIN_DIFFICULTY;
     this.currentPalette = 0;
-    this.backgroundLayerIsDrawn = false;
     this.missileSpeed = SLOWEST_MISSILE_SPEED;
     this.spawnRate = SLOWEST_SPAWN_RATE;
     this.score = 0;
     this.gameOver = false;
+    this.messageShown = false;
   }
 
-  reset(): void {
+  getCurrentPalette(): Palette {
+    return PALETTES[this.currentPalette];
+  }
+
+  resetGame(layers: Layers, cities: Cities, missiles: Missiles): void {
     this.round = START_ROUND;
     this.frame = 0;
     this.difficulty = MIN_DIFFICULTY;
     this.currentPalette = 0;
-    this.backgroundLayerIsDrawn = false;
     this.missileSpeed = SLOWEST_MISSILE_SPEED;
     this.spawnRate = SLOWEST_SPAWN_RATE;
     this.score = 0;
     this.gameOver = false;
-  }
-
-  advanceFrame(
-    layers: Layers,
-    ground: Ground,
-    hill: Hill,
-    cities: Cities,
-    missiles: Missiles
-  ): void {
-    const palette = this.getCurrentPalette();
-
-    if (this.gameOver) {
-      if (this.frame % MESSAGE_LENGTH === 0) {
-        this.resetGame(cities, missiles);
-      }
-    } else if (this.frame === ROUND_LENGTH) {
-      this.advanceRound(cities);
-      this.frame = 0;
-    }
-    this.drawBackground(layers.background, ground, hill, palette);
-    this.spawnMissiles(missiles);
-    this.drawAndMoveMissiles(
-      layers.missile,
-      ground,
-      hill,
-      cities,
-      missiles,
-      palette
-    );
-    this.drawForeground(layers.city, cities, palette);
-    this.drawDebugInfo(layers.debug);
-    this.checkGameOver(cities);
-    this.increaseScore(10);
-    this.frame += 1;
-  }
-
-  getCurrentPalette() {
-    return PALETTES[this.currentPalette];
-  }
-
-  resetGame(cities: Cities, missiles: Missiles) {
-    this.reset();
+    this.messageShown = false;
+    layers.foreground.clearRect(0, 0, WIDTH, HEIGHT);
     cities.reset();
     missiles.reset();
   }
 
-  drawBackground(layer: Layer, ground: Ground, hill: Hill, palette: Palette) {
-    if (!this.backgroundLayerIsDrawn) {
+  advanceRound(player: Player, cities: Cities): void {
+    if (this.round >= MAX_ROUND) {
+      return;
+    }
+    this.round += 1;
+    if ((this.round - 1) % 2 == 0) {
+      if (this.currentPalette < PALETTES.length - 1) {
+        this.currentPalette += 1;
+      } else {
+        this.currentPalette = 0;
+      }
+    }
+    player.queueUpdate();
+    cities.queueUpdate();
+    if (this.difficulty < MAX_DIFFICULTY) {
+      this.difficulty += 1;
+      this.spawnRate = Math.round(
+        SLOWEST_SPAWN_RATE - SPAWN_INCREMENT * (this.difficulty - 1)
+      );
+      this.missileSpeed = Math.round(
+        SLOWEST_MISSILE_SPEED - SPEED_INCREMENT * (this.difficulty - 1)
+      );
+    }
+  }
+
+  drawBackground(
+    layer: Layer,
+    ground: Ground,
+    hill: Hill,
+    palette: Palette
+  ): void {
+    if (this.frame === 0) {
       layer.fillStyle = palette.background;
       layer.fillRect(0, 0, WIDTH, HEIGHT);
       ground.draw(layer, palette.ground);
       hill.draw(layer, palette.ground);
-      this.backgroundLayerIsDrawn = true;
     }
   }
 
-  spawnMissiles(missiles: Missiles) {
+  spawnMissiles(missiles: Missiles): void {
     if (this.frame % this.spawnRate === 0) {
       missiles.spawn(this.difficulty);
     }
@@ -136,7 +130,7 @@ export default class GameState {
     cities: Cities,
     missiles: Missiles,
     palette: Palette
-  ) {
+  ): void {
     if (this.frame % this.missileSpeed === 0) {
       missiles.draw(
         layer,
@@ -144,18 +138,6 @@ export default class GameState {
         palette.missileHead,
         palette.text
       );
-      if (this.gameOver) {
-        const message = this.score >= MAX_SCORE ? "MAX SCORE" : "GAME OVER";
-        drawWord(
-          layer,
-          palette.text,
-          WIDTH_MIDDLE,
-          HEIGHT_MIDDLE,
-          PIXEL_SIZE,
-          message,
-          true
-        );
-      }
       missiles.checkCollision(ground);
       missiles.checkCollision(hill);
       cities.forEach((city) => {
@@ -165,49 +147,29 @@ export default class GameState {
     }
   }
 
-  drawForeground(layer: Layer, cities: Cities, palette: Palette) {
+  drawForeground(
+    layer: Layer,
+    player: Player,
+    cities: Cities,
+    palette: Palette
+  ): void {
+    player.drawInput(layer, palette.background, palette.text);
     if (this.frame % ANIMATION_SPEED === 0) {
       cities.draw(layer, palette.city, palette.mushroomCloud);
       drawScore(layer, palette.text, this.score);
     }
-  }
-
-  checkGameOver(cities: Cities) {
-    if (!cities.areAlive() || this.score >= MAX_SCORE) {
-      this.gameOver = true;
-    }
-  }
-
-  increaseScore(value: number) {
-    if (this.score < MAX_SCORE) {
-      this.score += value;
-    } else {
-      this.score = MAX_SCORE;
-    }
-  }
-
-  advanceRound(cities: Cities): void {
-    if (this.round >= MAX_ROUND) {
-      return;
-    }
-    this.round += 1;
-    if (this.round % 2 == 0) {
-      if (this.currentPalette < PALETTES.length - 1) {
-        this.currentPalette += 1;
-      } else {
-        this.currentPalette = 0;
-      }
-    }
-    if (this.difficulty < MAX_DIFFICULTY) {
-      cities.queueUpdate();
-      this.backgroundLayerIsDrawn = false;
-      this.difficulty += 1;
-      this.spawnRate = Math.round(
-        SLOWEST_SPAWN_RATE - SPAWN_INCREMENT * (this.difficulty - 1)
+    if (this.gameOver && this.messageShown === false) {
+      const message = this.score >= MAX_SCORE ? "MAX SCORE" : "GAME OVER";
+      drawWord(
+        layer,
+        null,
+        palette.text,
+        WIDTH_MIDDLE,
+        HEIGHT_MIDDLE,
+        PIXEL_SIZE,
+        message
       );
-      this.missileSpeed = Math.round(
-        SLOWEST_MISSILE_SPEED - SPEED_INCREMENT * (this.difficulty - 1)
-      );
+      this.messageShown = true;
     }
   }
 
@@ -221,7 +183,6 @@ export default class GameState {
         `frame: ${this.frame} / ${ROUND_LENGTH}`,
         `difficulty: ${this.difficulty} / ${MAX_DIFFICULTY}`,
         `currentPalette: ${this.currentPalette} / ${PALETTES.length - 1}`,
-        `backgroundLayerIsDrawn: ${this.backgroundLayerIsDrawn}`,
         `missileSpeed: ${this.missileSpeed} / ${FASTEST_MISSILE_SPEED}`,
         `spawnRate: ${this.spawnRate} / ${FASTEST_SPAWN_RATE}`,
         `score: ${this.score} / ${MAX_SCORE}`,
@@ -252,5 +213,59 @@ export default class GameState {
         layer.fillText(debugInfo[i], PIXEL_SIZE, fontSize * i + fontSize);
       }
     }
+  }
+
+  checkGameOver(cities: Cities): void {
+    if (!cities.areAlive() || this.score >= MAX_SCORE) {
+      this.gameOver = true;
+    }
+  }
+
+  increaseScore(multiplier: number | null): void {
+    if (multiplier === null || this.score === MAX_SCORE) {
+      return;
+    }
+    let pendingScore = this.score + (BASE_SCORE_INCREMENT * multiplier);
+    if (pendingScore < MAX_SCORE) {
+      this.score = pendingScore;
+    } else {
+      this.score = MAX_SCORE;
+    }
+  }
+
+  advanceFrame(
+    layers: Layers,
+    player: Player,
+    ground: Ground,
+    hill: Hill,
+    cities: Cities,
+    missiles: Missiles
+  ): void {
+    if (this.gameOver) {
+      if (this.frame % MESSAGE_LENGTH === 0) {
+        this.resetGame(layers, cities, missiles);
+      }
+    } else if (this.frame === ROUND_LENGTH) {
+      this.advanceRound(player, cities);
+      this.frame = 0;
+    }
+    const palette = this.getCurrentPalette();
+
+    this.drawBackground(layers.background, ground, hill, palette);
+    this.spawnMissiles(missiles);
+    this.drawAndMoveMissiles(
+      layers.missile,
+      ground,
+      hill,
+      cities,
+      missiles,
+      palette
+    );
+    this.drawForeground(layers.foreground, player, cities, palette);
+    const multiplier = player.match(missiles);
+    this.drawDebugInfo(layers.debug);
+    this.checkGameOver(cities);
+    this.increaseScore(multiplier);
+    this.frame += 1;
   }
 }
