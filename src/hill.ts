@@ -1,36 +1,21 @@
 import { RenderConstants } from "./main.ts";
-import { Bounds, HexColor, Layer } from "./types.ts";
+import { Bound, HexColor, Layer } from "./types.ts";
 
 export default class Hill {
-  private bounds: Bounds[];
+  private readonly bounds: Bound[];
 
   constructor() {
-    this.bounds = [
-      {
-        x: Math.floor(
-          RenderConstants.WIDTH_MIDDLE - RenderConstants.PIXEL_SIZE * 13.5
-        ),
-        y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * 17,
-        width: RenderConstants.PIXEL_SIZE * 27,
+    this.bounds = [];
+    for (let i = 0; i < 3; i++) {
+      let width = RenderConstants.PIXEL_SIZE * (27 - 10 * i);
+      let x = RenderConstants.WIDTH_MIDDLE - Math.floor(width * 0.5);
+      this.bounds.push({
+        x,
+        y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * (17 + i * 2),
+        width,
         height: 2 * RenderConstants.PIXEL_SIZE,
-      },
-      {
-        x: Math.floor(
-          RenderConstants.WIDTH_MIDDLE - RenderConstants.PIXEL_SIZE * 8.5
-        ),
-        y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * 19,
-        width: RenderConstants.PIXEL_SIZE * 17,
-        height: 2 * RenderConstants.PIXEL_SIZE,
-      },
-      {
-        x: Math.floor(
-          RenderConstants.WIDTH_MIDDLE - RenderConstants.PIXEL_SIZE * 3.5
-        ),
-        y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * 21,
-        width: RenderConstants.PIXEL_SIZE * 7,
-        height: 2 * RenderConstants.PIXEL_SIZE,
-      },
-    ];
+      });
+    }
   }
 
   draw(layer: Layer, groundColor: HexColor): void {
@@ -40,7 +25,7 @@ export default class Hill {
     });
   }
 
-  getBounds(): Bounds[] {
+  getBounds(): Bound[] {
     return this.bounds;
   }
 

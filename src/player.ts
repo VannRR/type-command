@@ -1,32 +1,28 @@
 import { drawWord, CharConstants } from "./drawWord";
+import { Explosions } from "./explosion";
 import { RenderConstants } from "./main";
 import { Missiles } from "./missiles";
 import { HexColor, Layer, Vector, Option } from "./types";
 
+const MIN_INPUT_LENGTH = 1;
 const MAX_INPUT_LENGTH = 12;
 
 export default class Player {
-  private prevInput: Option<string>;
-  private currentInput: string;
-  private submittedInput: Option<string>;
-  private inputY: number;
-  private flash: boolean;
-  private turretCoords: Vector;
+  private prevInput: Option<string> = null;
+  private currentInput: string = "";
+  private submittedInput: Option<string> = null;
+  private flash: boolean = false;
+  private inputY: number =
+    RenderConstants.HEIGHT -
+    RenderConstants.PIXEL_SIZE * 5 -
+    RenderConstants.PIXEL_SIZE_SMALL * CharConstants.PIXEL_HEIGHT;
+  private turretCoords: Vector = {
+    x: Math.floor(
+      RenderConstants.WIDTH_MIDDLE - RenderConstants.PIXEL_SIZE * 1.5
+    ),
+    y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * 22,
+  };
   constructor(appDiv: HTMLDivElement) {
-    this.inputY =
-      RenderConstants.HEIGHT -
-      RenderConstants.PIXEL_SIZE * 5 -
-      RenderConstants.PIXEL_SIZE_SMALL * CharConstants.PIXEL_HEIGHT;
-    this.turretCoords = {
-      x: Math.floor(
-        RenderConstants.WIDTH_MIDDLE - RenderConstants.PIXEL_SIZE * 1.5
-      ),
-      y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * 22,
-    };
-    this.prevInput = null;
-    this.currentInput = "";
-    this.submittedInput = null;
-    this.flash = false;
     appDiv.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         this.submittedInput = this.currentInput;
@@ -45,7 +41,7 @@ export default class Player {
     });
   }
 
-  toggleFlash(): void {
+  advance(): void {
     this.flash = !this.flash;
   }
 
@@ -69,8 +65,7 @@ export default class Player {
         layer,
         backgroundColor,
         textColor,
-        RenderConstants.WIDTH_MIDDLE,
-        this.inputY,
+        { x: RenderConstants.WIDTH_MIDDLE, y: this.inputY },
         RenderConstants.PIXEL_SIZE_SMALL,
         this.currentInput
       );
@@ -78,45 +73,37 @@ export default class Player {
     }
   }
 
-  findBestMatch(words: string[]): Option<{ word: string; index: number }> {
-    if (this.currentInput.length < 1) {
+  findCurrentMatch(words: string[]): Option<{ word: string; index: number }> {
+    if (this.currentInput.length < MIN_INPUT_LENGTH) {
       return null;
     }
-    let maxMatch = 0;
-    let bestMatch = { word: "", index: 0 };
 
     for (let index = 0; index < words.length; index++) {
       const word = words[index];
-      const shortest =
-        word.length < this.currentInput.length
-          ? word.length
-          : this.currentInput.length;
+      const shortest = Math.min(word.length, this.currentInput.length);
 
-      let m = 0;
+      let match = 0;
       for (let i = 0; i < shortest; i++) {
         if (word[i] !== this.currentInput[i]) {
           break;
         }
-        m += 1;
+        match += 1;
       }
 
-      if (m === this.currentInput.length && m === word.length) {
+      if (match === this.currentInput.length && match === word.length) {
+        return { word, index };
+      } else if (
+        match === shortest &&
+        this.currentInput.length <= word.length
+      ) {
         return { word, index };
       }
+    }
 
-      if (m > maxMatch) {
-        maxMatch = m;
-        bestMatch = { word, index };
-      }
-    }
-    if (maxMatch < 1) {
-      return null;
-    } else {
-      return bestMatch;
-    }
+    return null;
   }
 
-  target(missiles: Missiles): Option<number> {
+  target(missiles: Missiles, explosions: Explosions): Option<number> {
     if (this.submittedInput === null) {
       return null;
     }
@@ -125,7 +112,8 @@ export default class Player {
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
       if (word === this.submittedInput) {
-        missiles.remove(i);
+        const missileCoords = missiles.getCoordsByIndex(i);
+        explosions.spawn(missileCoords);
         this.submittedInput = null;
         return word.length;
       }
@@ -155,7 +143,7 @@ export default class Player {
     textColor: HexColor,
     missileHeadColor: HexColor
   ): void {
-    const bestMatch = this.findBestMatch(missiles.getWords());
+    const bestMatch = this.findCurrentMatch(missiles.getWords());
 
     if (bestMatch === null) {
       return;

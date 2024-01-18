@@ -1,8 +1,8 @@
 import { RenderConstants } from "./main.ts";
-import { Bounds, HexColor, Layer } from "./types.ts";
+import { Bound, HexColor, Layer } from "./types.ts";
 
 export default class Ground {
-  private readonly bounds: Bounds[];
+  private readonly bounds: Bound[];
 
   constructor() {
     this.bounds = [
@@ -29,12 +29,12 @@ export default class Ground {
 
   draw(layer: Layer, groundColor: HexColor): void {
     layer.fillStyle = groundColor;
-    this.bounds.forEach((bound) => {
+    this.bounds.forEach((bound: Bound) => {
       layer.fillRect(bound.x, bound.y, bound.width, bound.height);
     });
   }
 
-  getBounds(): Bounds[] {
+  getBounds(): Bound[] {
     return this.bounds;
   }
 

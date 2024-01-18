@@ -7,6 +7,7 @@ import initLayers from "./initLayers.ts";
 import GameState from "./gameState.ts";
 import Clock from "./clock.ts";
 import Player from "./player.ts";
+import { Explosions } from "./explosion.ts";
 
 export const DEBUG = true;
 
@@ -58,9 +59,18 @@ const ground = new Ground();
 const hill = new Hill();
 const cities = new Cities();
 const missiles = new Missiles();
+const explosions = new Explosions();
 
 // Game loop
 const clock = new Clock(() => {
-  gameState.advanceFrame(layers, player, ground, hill, cities, missiles);
+  gameState.advanceFrame(
+    layers,
+    player,
+    ground,
+    hill,
+    cities,
+    missiles,
+    explosions
+  );
 }, RenderConstants.FPS);
 clock.start();

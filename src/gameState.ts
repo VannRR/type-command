@@ -1,6 +1,7 @@
 import { Cities } from "./cities";
 import drawScore from "./drawScore";
 import { drawWord } from "./drawWord";
+import { Explosions } from "./explosion";
 import Ground from "./ground";
 import Hill from "./hill";
 import { RenderConstants, GameplayConstants } from "./main";
@@ -24,6 +25,7 @@ export default class GameState {
   private score: number = 0;
   private gameOver: boolean = false;
   private messageShown: boolean = false;
+
   constructor() {}
 
   getCurrentPalette(): Palette {
@@ -103,6 +105,7 @@ export default class GameState {
     hill: Hill,
     cities: Cities,
     missiles: Missiles,
+    explosions: Explosions,
     palette: Palette
   ): void {
     if (this.frame % this.missileSpeed === 0) {
@@ -116,6 +119,9 @@ export default class GameState {
       missiles.checkCollision(hill);
       cities.forEach((city) => {
         missiles.checkCollision(city);
+      });
+      explosions.forEach((explosion) => {
+        missiles.checkCollision(explosion);
       });
       missiles.move();
     }
@@ -139,8 +145,7 @@ export default class GameState {
         layer,
         null,
         palette.text,
-        RenderConstants.WIDTH_MIDDLE,
-        RenderConstants.HEIGHT_MIDDLE,
+        { x: RenderConstants.WIDTH_MIDDLE, y: RenderConstants.HEIGHT_MIDDLE },
         RenderConstants.PIXEL_SIZE,
         message
       );
@@ -165,6 +170,7 @@ export default class GameState {
     layers: Layers,
     player: Player,
     missiles: Missiles,
+    explosions: Explosions,
     palette: Palette
   ): void {
     if (this.frame % this.missileSpeed === 0) {
@@ -174,12 +180,18 @@ export default class GameState {
         palette.text,
         palette.missileHead
       );
+      explosions.draw(
+        layers.missile,
+        palette.mushroomCloud,
+        palette.missileHead
+      );
     }
     if (this.frame % RenderConstants.ANIMATION_SPEED === 0) {
       player.drawTurret(layers.foreground, palette.text, palette.missileHead);
-      player.toggleFlash();
+      player.advance();
+      explosions.advance();
     }
-    const multiplier = player.target(missiles);
+    const multiplier = player.target(missiles, explosions);
     if (multiplier !== null) {
       this.increaseScore(multiplier);
     }
@@ -246,7 +258,8 @@ export default class GameState {
     ground: Ground,
     hill: Hill,
     cities: Cities,
-    missiles: Missiles
+    missiles: Missiles,
+    explosions: Explosions
   ): void {
     if (this.gameOver) {
       if (this.frame % RenderConstants.MESSAGE_LENGTH === 0) {
@@ -266,10 +279,11 @@ export default class GameState {
       hill,
       cities,
       missiles,
+      explosions,
       palette
     );
     this.drawForeground(layers.foreground, player, cities, palette);
-    this.drawAndTargetPlayer(layers, player, missiles, palette);
+    this.drawAndTargetPlayer(layers, player, missiles, explosions, palette);
     this.drawDebugInfo(layers.debug);
     this.checkGameOver(cities);
     this.frame += 1;

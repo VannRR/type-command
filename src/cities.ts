@@ -1,5 +1,5 @@
 import { RenderConstants } from "./main.ts";
-import { Bounds, PixelGrid, HexColor, Layer, Vector, Option } from "./types.ts";
+import { Bound, PixelGrid, HexColor, Layer, Vector, Option } from "./types.ts";
 import { drawGrid } from "./utility.ts";
 
 enum CityConstants {
@@ -82,7 +82,7 @@ export class City {
     return this.frame === 0;
   }
 
-  advanceFrame(): void {
+  advance(): void {
     if (this.frame < CITY_FRAMES.length - 1) {
       this.frame++;
       this.updated = false;
@@ -106,11 +106,11 @@ export class City {
       CITY_FRAMES[this.frame]
     );
     if (this.frame !== 0) {
-      this.advanceFrame();
+      this.advance();
     }
   }
 
-  getBounds(): Option<Bounds[]> {
+  getBounds(): Option<Bound[]> {
     if (this.frame === 0) {
       return [
         {
@@ -127,15 +127,15 @@ export class City {
 
   setCollision(): void {
     if (this.frame === 0) {
-      this.advanceFrame();
+      this.advance();
     }
   }
 }
 
 export class Cities {
-  private readonly cities: City[];
+  private readonly all: City[];
   constructor() {
-    this.cities = [
+    this.all = [
       new City(Math.floor(RenderConstants.WIDTH * 0.104)),
       new City(Math.floor(RenderConstants.WIDTH * 0.223)),
       new City(Math.floor(RenderConstants.WIDTH * 0.34)),
@@ -146,19 +146,19 @@ export class Cities {
   }
 
   draw(layer: Layer, cityColor: HexColor, mushroomCloudColor: HexColor): void {
-    this.cities.forEach((city) => {
+    this.all.forEach((city) => {
       city.draw(layer, cityColor, mushroomCloudColor);
     });
   }
 
   forEach(func: (city: City) => void): void {
-    for (const city of this.cities) {
+    for (const city of this.all) {
       func(city);
     }
   }
 
   areStanding(): boolean {
-    for (const city of this.cities) {
+    for (const city of this.all) {
       if (city.isAlive()) {
         return true;
       }
@@ -167,13 +167,13 @@ export class Cities {
   }
 
   reset(): void {
-    for (const city of this.cities) {
+    for (const city of this.all) {
       city.reset();
     }
   }
 
   queueUpdate(): void {
-    for (const city of this.cities) {
+    for (const city of this.all) {
       city.queueUpdate();
     }
   }

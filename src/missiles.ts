@@ -1,10 +1,7 @@
-import { City } from "./cities.ts";
-import Ground from "./ground.ts";
-import Hill from "./hill.ts";
 import { drawWord } from "./drawWord.ts";
 import { RenderConstants } from "./main.ts";
 import WORDS from "./words.json";
-import { HexColor, Layer, Vector } from "./types.ts";
+import { CollisionObject, HexColor, Layer, Vector } from "./types.ts";
 
 enum MissileConstants {
   INITIAL_Y = 14,
@@ -13,36 +10,45 @@ enum MissileConstants {
   ANGLED_ABS_COS = 0.23,
 }
 
+const RANDOM_WORD_THRESHOLD = 0.5;
+const MIN_VECTOR_THRESHOLD = 0.01;
+const VECTOR_COLLISION_SCALE_FACTOR = 25;
+
 function generateRandomVector(x: number): Vector {
   const angle = (Math.random() * Math.PI) / 2 - Math.PI / 4 - 0.5 * Math.PI;
   const vecY = -Math.sin(angle);
   let vecX = Math.cos(angle);
 
   if (
-    vecX * 25 * RenderConstants.PIXEL_SIZE + x > RenderConstants.PIXEL_WIDTH ||
-    vecX * 25 * RenderConstants.PIXEL_SIZE + x < 0
+    vecX * VECTOR_COLLISION_SCALE_FACTOR * RenderConstants.PIXEL_SIZE + x >
+      RenderConstants.PIXEL_WIDTH ||
+    vecX * VECTOR_COLLISION_SCALE_FACTOR * RenderConstants.PIXEL_SIZE + x < 0
   ) {
     vecX = -vecX;
   }
   return {
-    x: Math.abs(vecX) >= 0.01 ? vecX : 0,
-    y: Math.abs(vecY) >= 0.01 ? vecY : 0,
+    x: Math.abs(vecX) >= MIN_VECTOR_THRESHOLD ? vecX : 0,
+    y: Math.abs(vecY) >= MIN_VECTOR_THRESHOLD ? vecY : 0,
   };
 }
 
 function getRandomWord(difficulty: number): string {
+  if (!WORDS || WORDS.length === 0) {
+    throw new Error("WORDS array is empty or not defined");
+  }
+
   let charCount = difficulty - 1;
   for (let i = charCount; i >= 0; i--) {
-    if (Math.random() > 0.5) {
+    if (Math.random() > RANDOM_WORD_THRESHOLD) {
       break;
     }
     charCount = i;
   }
-  if (charCount > WORDS.length - 1) {
-    charCount = WORDS.length - 1;
-  }
+
+  charCount = Math.min(charCount, WORDS.length - 1);
   const currentWords = WORDS[charCount];
   const randomWordIndex = Math.floor(Math.random() * currentWords.length);
+
   return currentWords[randomWordIndex].toUpperCase();
 }
 
@@ -106,23 +112,17 @@ export default class Missile {
       const prev = this.trail[i];
       layer.fillRect(prev.x, prev.y, this.width, this.height);
     }
-    for (
-      let i = this.trail.length - MissileConstants.PIXEL_GAP_TO_TRAIL;
-      i > 0;
-      i--
-    ) {
-      const prev = this.trail[i];
-      if (i === this.trail.length - MissileConstants.PIXEL_GAP_TO_WORD) {
-        drawWord(
-          layer,
-          null,
-          textColor,
-          prev.x,
-          prev.y,
-          RenderConstants.PIXEL_SIZE_SMALL,
-          this.word
-        );
-      }
+    const wordCoords =
+      this.trail[this.trail.length - MissileConstants.PIXEL_GAP_TO_WORD];
+    if (wordCoords) {
+      drawWord(
+        layer,
+        null,
+        textColor,
+        wordCoords,
+        RenderConstants.PIXEL_SIZE_SMALL,
+        this.word
+      );
     }
     layer.fillStyle = missileHeadColor;
     let missileBackX = this.coords.x;
@@ -140,7 +140,7 @@ export default class Missile {
     layer.fillRect(this.coords.x, this.coords.y, this.width, this.height);
   }
 
-  checkCollision(other: Ground | Hill | City): boolean {
+  checkCollision(other: CollisionObject): boolean {
     if (this.coords.y > RenderConstants.HEIGHT) {
       return true;
     }
@@ -199,10 +199,6 @@ export class Missiles {
     return words;
   }
 
-  remove(index: number): void {
-    this.all.splice(index, 1);
-  }
-
   reset(): void {
     this.all = [];
   }
@@ -219,7 +215,7 @@ export class Missiles {
     });
   }
 
-  checkCollision(other: Ground | Hill | City): void {
+  checkCollision(other: CollisionObject): void {
     const survivingMissiles: Missile[] = [];
     for (const missile of this.all) {
       if (!missile.checkCollision(other)) {

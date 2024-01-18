@@ -1,4 +1,4 @@
-import { HexColor, Layer, Option } from "./types.ts";
+import { HexColor, Layer, Option, Vector } from "./types.ts";
 import { drawGrid } from "./utility.ts";
 
 export enum CharConstants {
@@ -327,8 +327,7 @@ export function drawWord(
   layer: Layer,
   backgroundColor: Option<HexColor>,
   textColor: HexColor,
-  x: number,
-  y: number,
+  coords: Vector,
   pixelSize: number,
   word: string
 ): void {
@@ -346,16 +345,16 @@ export function drawWord(
 
   if (backgroundColor === null) {
     layer.clearRect(
-      x - wordMiddle - pixelSize * 3,
-      y - pixelSize * 2,
+      coords.x - wordMiddle - pixelSize * 3,
+      coords.y - pixelSize * 2,
       word.length * charWidth + pixelSize * word.length + pixelSize * 5,
       charHeight + pixelSize * 4
     );
   } else {
     layer.fillStyle = backgroundColor;
     layer.fillRect(
-      x - wordMiddle - pixelSize * 3,
-      y - pixelSize * 2,
+      coords.x - wordMiddle - pixelSize * 3,
+      coords.y - pixelSize * 2,
       word.length * charWidth + pixelSize * word.length + pixelSize * 5,
       charHeight + pixelSize * 4
     );
@@ -371,8 +370,8 @@ export function drawWord(
     drawGrid(
       layer,
       {
-        x: x + l * charWidth + l * pixelSize - wordMiddle,
-        y: y,
+        x: coords.x + l * charWidth + l * pixelSize - wordMiddle,
+        y: coords.y,
       },
       pixelSize,
       char
