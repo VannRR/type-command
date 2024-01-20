@@ -1,13 +1,6 @@
 import "./style.css";
-import Ground from "./ground.ts";
-import { Cities } from "./cities.ts";
-import Hill from "./hill.ts";
-import { Missiles } from "./missiles.ts";
-import initLayers from "./initLayers.ts";
-import GameState from "./gameState.ts";
+import Game from "./game.ts";
 import Clock from "./clock.ts";
-import Player from "./player.ts";
-import { Explosions } from "./explosion.ts";
 
 export const DEBUG = true;
 
@@ -26,6 +19,7 @@ export enum RenderConstants {
 }
 
 export enum GameplayConstants {
+  MAX_MISSILES_AND_EXPLOSIONS = 99,
   MAX_SCORE = 9999999,
   BASE_SCORE_INCREMENT = 100,
   MAX_ROUND = 99999,
@@ -48,28 +42,9 @@ if (!appDiv) {
 }
 appDiv.focus();
 
-const layers = initLayers(appDiv);
+const game = new Game(appDiv);
 
-const gameState = new GameState();
-
-// Game objects
-const player = new Player(appDiv);
-const ground = new Ground();
-const hill = new Hill();
-const cities = new Cities();
-const missiles = new Missiles();
-const explosions = new Explosions();
-
-// Game loop
 const clock = new Clock(() => {
-  gameState.advanceFrame(
-    layers,
-    player,
-    ground,
-    hill,
-    cities,
-    missiles,
-    explosions,
-  );
+  game.advanceFrame();
 }, RenderConstants.FPS);
 clock.start();

@@ -1,4 +1,4 @@
-import { RenderConstants } from "./main.ts";
+import { GameplayConstants, RenderConstants } from "./main.ts";
 import { Bound, HexColor, Layer, PixelGrid, Vector, Option } from "./types.ts";
 import { drawGrid } from "./utility.ts";
 
@@ -139,7 +139,10 @@ export class Explosions {
   private readonly all: Explosion[] = [];
 
   public spawn(coords: Option<Vector>) {
-    if (coords === null) {
+    if (
+      coords === null ||
+      this.all.length >= GameplayConstants.MAX_MISSILES_AND_EXPLOSIONS
+    ) {
       return;
     }
     const explosion = new Explosion(coords);

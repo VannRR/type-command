@@ -1,6 +1,6 @@
 import { GameplayConstants, RenderConstants } from "./main";
 import PALETTES from "./palettes";
-import { DebugValues, Layer } from "./types";
+import { GameState, Layer } from "./types";
 
 const GRID_SIZE = 6;
 const GRID_COLOR = "green";
@@ -21,15 +21,15 @@ export function drawDebugGrid(layer: Layer) {
   }
 }
 
-export function drawDebugText(layer: Layer, debugValues: DebugValues): void {
+export function drawDebugText(layer: Layer, gameState: GameState): void {
   const debugInfo = [
-    `round: ${debugValues.round} / ${GameplayConstants.MAX_ROUND}`,
-    `frame: ${debugValues.frame} / ${GameplayConstants.ROUND_LENGTH}`,
-    `difficulty: ${debugValues.difficulty} / ${GameplayConstants.MAX_DIFFICULTY}`,
-    `currentPalette: ${debugValues.currentPalette} / ${PALETTES.length - 1}`,
-    `missileSpeed: ${debugValues.missileSpeed} / ${GameplayConstants.FASTEST_MISSILE_SPEED}`,
-    `spawnRate: ${debugValues.spawnRate} / ${GameplayConstants.FASTEST_SPAWN_RATE}`,
-    `score: ${debugValues.score} / ${GameplayConstants.MAX_SCORE}`,
+    `round: ${gameState.round} / ${GameplayConstants.MAX_ROUND}`,
+    `frame: ${gameState.frame} / ${GameplayConstants.ROUND_LENGTH}`,
+    `difficulty: ${gameState.difficulty} / ${GameplayConstants.MAX_DIFFICULTY}`,
+    `currentPalette: ${gameState.currentPalette} / ${PALETTES.length - 1}`,
+    `missileSpeed: ${gameState.missileSpeed} / ${GameplayConstants.FASTEST_MISSILE_SPEED}`,
+    `spawnRate: ${gameState.spawnRate} / ${GameplayConstants.FASTEST_SPAWN_RATE}`,
+    `score: ${gameState.score} / ${GameplayConstants.MAX_SCORE}`,
   ];
 
   const fontSize = RenderConstants.PIXEL_SIZE * 4;

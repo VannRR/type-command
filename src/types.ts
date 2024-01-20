@@ -42,7 +42,7 @@ export interface Layers {
   debug: Option<Layer>;
 }
 
-export interface DebugValues {
+export interface GameState {
   round: number;
   frame: number;
   difficulty: number;
@@ -50,4 +50,6 @@ export interface DebugValues {
   missileSpeed: number;
   spawnRate: number;
   score: number;
+  gameOver: boolean;
+  messageShown: boolean;
 }

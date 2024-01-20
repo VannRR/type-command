@@ -1,5 +1,5 @@
 import { drawWord } from "./drawWord.ts";
-import { RenderConstants } from "./main.ts";
+import { GameplayConstants, RenderConstants } from "./main.ts";
 import { CollisionObject, HexColor, Layer, Vector, Option } from "./types.ts";
 import { generateRandomVector, getRandomWord } from "./utility.ts";
 
@@ -126,8 +126,13 @@ export default class Missile {
 
 export class Missiles {
   private all: Missile[] = [];
+  private cleared = true;
 
   public spawn(difficulty: number): void {
+    if (this.all.length >= GameplayConstants.MAX_MISSILES_AND_EXPLOSIONS) {
+      return;
+    }
+
     const min = RenderConstants.PIXEL_WIDTH * 0.1;
     const max = RenderConstants.PIXEL_WIDTH * 0.9;
     const x = Math.floor(Math.random() * (max - min) + min);
@@ -167,10 +172,15 @@ export class Missiles {
     missileHeadColor: HexColor,
     textColor: HexColor
   ): void {
-    layer.clearRect(0, 0, RenderConstants.WIDTH, RenderConstants.HEIGHT);
+    if (this.cleared === false) {
+      layer.clearRect(0, 0, RenderConstants.WIDTH, RenderConstants.HEIGHT);
+    }
+
     this.all.forEach((missile) => {
       missile.draw(layer, missileTrailColor, missileHeadColor, textColor);
     });
+
+    this.cleared = this.all.length === 0;
   }
 
   public checkCollision(other: CollisionObject): void {
