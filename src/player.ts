@@ -1,11 +1,31 @@
 import { drawWord, CHAR_GRID_SIZE } from "./drawWord";
-import { Explosions } from "./explosion";
 import { RenderConstants } from "./main";
-import { Missiles } from "./missiles";
 import { HexColor, Layer, Vector, Option } from "./types";
 
 const MIN_INPUT_LENGTH = 1;
 const MAX_INPUT_LENGTH = 12;
+const DIFFICULTY_SETTINGS = [
+  "!ONE",
+  "!TWO",
+  "!THREE",
+  "!FOUR",
+  "!FIVE",
+  "!SIX",
+  "!SEVEN",
+  "!EIGHT",
+  "!NINE",
+  "!TEN",
+  "!ELEVEN",
+  "!TWELVE",
+  "!THIRTEEN",
+  "!FOURTEEN",
+  "!FIFTEEN",
+  "!SIXTEEN",
+  "!SEVENTEEN",
+  "!EIGHTEEN",
+  "!NINETEEN",
+  "!TWENTY",
+];
 
 export default class Player {
   private prevInput: Option<string> = null;
@@ -35,16 +55,14 @@ export default class Player {
         );
       } else if (
         this.currentInput.length < MAX_INPUT_LENGTH &&
-        /^[a-zA-Z]$/.test(event.key)
+        /^(!|[a-zA-Z])$/.test(event.key)
       ) {
         this.currentInput += event.key.toUpperCase();
       }
     });
   }
 
-  private findCurrentMatch(
-    words: string[]
-  ): Option<{ word: string; index: number }> {
+  public getCurrentMatch(words: string[]): Option<number> {
     if (this.currentInput.length < MIN_INPUT_LENGTH) {
       return null;
     }
@@ -62,12 +80,12 @@ export default class Player {
       }
 
       if (match === this.currentInput.length && match === word.length) {
-        return { word, index };
+        return index;
       } else if (
         match === shortest &&
         this.currentInput.length <= word.length
       ) {
-        return { word, index };
+        return index;
       }
     }
 
@@ -106,24 +124,21 @@ export default class Player {
     }
   }
 
-  public target(missiles: Missiles, explosions: Explosions): Option<number> {
-    if (this.submittedInput === null) {
+  public getDifficulty(): Option<number> {
+    if (this.submittedInput === null || this.submittedInput[0] !== "!") {
       return null;
     }
-
-    const words = missiles.getWords();
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i];
-      if (word === this.submittedInput) {
-        const missileCoords = missiles.getCoordsByIndex(i);
-        explosions.spawn(missileCoords);
-        this.submittedInput = null;
-        return word.length;
-      }
+    const index = DIFFICULTY_SETTINGS.indexOf(this.submittedInput);
+    if (index === -1) {
+      return null;
     }
+    return index + 1;
+  }
 
+  public getSubmittedInput(): Option<string> {
+    const input = this.submittedInput;
     this.submittedInput = null;
-    return null;
+    return input;
   }
 
   public drawTurret(
@@ -142,28 +157,24 @@ export default class Player {
 
   public drawCrossHair(
     layer: Layer,
-    missiles: Missiles,
+    coords: Option<Vector>,
     textColor: HexColor,
     missileHeadColor: HexColor
   ): void {
-    const bestMatch = this.findCurrentMatch(missiles.getWords());
-
-    if (bestMatch === null) {
+    if (coords === null) {
       return;
     }
 
-    const missileCoords = missiles.getCoordsByIndex(bestMatch.index);
-
     layer.fillStyle = this.flash ? missileHeadColor : textColor;
     layer.fillRect(
-      missileCoords.x - RenderConstants.PIXEL_SIZE,
-      missileCoords.y,
+      coords.x - RenderConstants.PIXEL_SIZE,
+      coords.y,
       RenderConstants.PIXEL_SIZE * 3,
       RenderConstants.PIXEL_SIZE
     );
     layer.fillRect(
-      missileCoords.x,
-      missileCoords.y - RenderConstants.PIXEL_SIZE,
+      coords.x,
+      coords.y - RenderConstants.PIXEL_SIZE,
       RenderConstants.PIXEL_SIZE,
       RenderConstants.PIXEL_SIZE * 3
     );

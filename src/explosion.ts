@@ -1,5 +1,5 @@
 import { RenderConstants } from "./main.ts";
-import { Bound, HexColor, Layer, PixelGrid, Vector } from "./types.ts";
+import { Bound, HexColor, Layer, PixelGrid, Vector, Option } from "./types.ts";
 import { drawGrid } from "./utility.ts";
 
 const EXPLOSION_GRID_SIZE = 11;
@@ -138,7 +138,10 @@ export class Explosion {
 export class Explosions {
   private readonly all: Explosion[] = [];
 
-  public spawn(coords: Vector) {
+  public spawn(coords: Option<Vector>) {
+    if (coords === null) {
+      return;
+    }
     const explosion = new Explosion(coords);
     this.all.push(explosion);
   }

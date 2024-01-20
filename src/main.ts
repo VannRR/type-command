@@ -9,7 +9,7 @@ import Clock from "./clock.ts";
 import Player from "./player.ts";
 import { Explosions } from "./explosion.ts";
 
-export const DEBUG = false;
+export const DEBUG = true;
 
 export enum RenderConstants {
   HEIGHT = window.innerHeight > 360 ? window.innerHeight : 360,

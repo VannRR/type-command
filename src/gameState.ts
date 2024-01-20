@@ -26,7 +26,7 @@ export default class GameState {
     return PALETTES[this.currentPalette];
   }
 
-  private resetGame(layers: Layers, cities: Cities, missiles: Missiles): void {
+  public resetGame(layer: Layer, cities: Cities, missiles: Missiles): void {
     this.round = GameplayConstants.MIN_DIFFICULTY_AND_ROUND;
     this.frame = 0;
     this.difficulty = GameplayConstants.MIN_DIFFICULTY_AND_ROUND;
@@ -36,12 +36,7 @@ export default class GameState {
     this.score = 0;
     this.gameOver = false;
     this.messageShown = false;
-    layers.foreground.clearRect(
-      0,
-      0,
-      RenderConstants.WIDTH,
-      RenderConstants.HEIGHT
-    );
+    layer.clearRect(0, 0, RenderConstants.WIDTH, RenderConstants.HEIGHT);
     cities.reset();
     missiles.reset();
   }
@@ -70,6 +65,23 @@ export default class GameState {
         GameplayConstants.SLOWEST_MISSILE_SPEED -
           GameplayConstants.SPEED_INCREMENT * (this.difficulty - 1)
       );
+    }
+  }
+
+  private setDifficulty(
+    layer: Layer,
+    player: Player,
+    cities: Cities,
+    missiles: Missiles
+  ) {
+    const difficulty = player.getDifficulty();
+    if (difficulty === null) {
+      return;
+    }
+
+    this.resetGame(layer, cities, missiles);
+    for (let i = 0; i < difficulty - 1; i++) {
+      this.advanceRound(player, cities);
     }
   }
 
@@ -111,7 +123,12 @@ export default class GameState {
         palette.text
       );
       player.drawTurret(layer, palette.text, palette.missileHead);
-      player.drawCrossHair(layer, missiles, palette.text, palette.missileHead);
+
+      const words = missiles.getWords();
+      const matchIndex = player.getCurrentMatch(words);
+      const coords = missiles.getCoordsByIndex(matchIndex);
+      player.drawCrossHair(layer, coords, palette.text, palette.missileHead);
+
       missiles.checkCollision(ground);
       missiles.checkCollision(hill);
       cities.forEach((city) => {
@@ -205,16 +222,20 @@ export default class GameState {
   ): void {
     if (this.gameOver) {
       if (this.frame % RenderConstants.MESSAGE_LENGTH === 0) {
-        this.resetGame(layers, cities, missiles);
+        this.resetGame(layers.foreground, cities, missiles);
       }
     } else if (this.frame === GameplayConstants.ROUND_LENGTH) {
       this.advanceRound(player, cities);
       this.frame = 0;
     }
+
+    this.setDifficulty(layers.foreground, player, cities, missiles);
+
     const palette = this.getCurrentPalette();
 
-    this.drawBackground(layers.background, ground, hill, palette);
     this.spawnMissiles(missiles);
+
+    this.drawBackground(layers.background, ground, hill, palette);
     this.drawMiddleground(
       layers.middleground,
       ground,
@@ -227,8 +248,12 @@ export default class GameState {
     );
     this.drawForeground(layers.foreground, player, cities, explosions, palette);
     this.drawDebug(layers.debug);
-    const multiplier = player.target(missiles, explosions);
+
+    const submittedInput = player.getSubmittedInput();
+    const { coords, multiplier } = missiles.destroy(submittedInput);
+    explosions.spawn(coords);
     this.increaseScore(multiplier);
+
     this.checkGameOver(cities);
     this.frame += 1;
   }

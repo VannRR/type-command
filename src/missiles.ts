@@ -1,6 +1,6 @@
 import { drawWord } from "./drawWord.ts";
 import { RenderConstants } from "./main.ts";
-import { CollisionObject, HexColor, Layer, Vector } from "./types.ts";
+import { CollisionObject, HexColor, Layer, Vector, Option } from "./types.ts";
 import { generateRandomVector, getRandomWord } from "./utility.ts";
 
 enum MissileConstants {
@@ -136,22 +136,25 @@ export class Missiles {
     this.all.push(new Missile(x, y, movementVector, difficulty));
   }
 
-  public move(): void {
-    for (const missile of this.all) {
-      missile.move();
-    }
-  }
-
-  public getCoordsByIndex(index: number): Vector {
-    return this.all[index].getCoords();
-  }
-
   public getWords(): string[] {
     const words = [];
     for (const missile of this.all) {
       words.push(missile.getWord());
     }
     return words;
+  }
+
+  public move(): void {
+    for (const missile of this.all) {
+      missile.move();
+    }
+  }
+
+  public getCoordsByIndex(index: Option<number>): Option<Vector> {
+    if (index === null) {
+      return null;
+    }
+    return this.all[index].getCoords();
   }
 
   public reset(): void {
@@ -178,5 +181,27 @@ export class Missiles {
       }
     }
     this.all = survivingMissiles;
+  }
+
+  public destroy(submittedInput: Option<string>): {
+    coords: Option<Vector>;
+    multiplier: Option<number>;
+  } {
+    if (submittedInput === null) {
+      return { coords: null, multiplier: null };
+    }
+
+    const words = this.getWords();
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      if (word === submittedInput) {
+        const missileCoords = this.getCoordsByIndex(i);
+        if (missileCoords === null) {
+          return { coords: null, multiplier: null };
+        }
+        return { coords: missileCoords, multiplier: word.length };
+      }
+    }
+    return { coords: null, multiplier: null };
   }
 }
