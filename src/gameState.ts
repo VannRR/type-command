@@ -1,4 +1,5 @@
 import { Cities } from "./cities";
+import { drawDebugGrid, drawDebugText } from "./drawDebugInfo";
 import drawScore from "./drawScore";
 import { drawWord } from "./drawWord";
 import { Explosions } from "./explosion";
@@ -10,32 +11,25 @@ import PALETTES from "./palettes";
 import Player from "./player";
 import { Layer, Layers, Palette, Option } from "./types";
 
-const GRID_SIZE = 6;
-const GRID_COLOR = "green";
-const INFO_BACKGROUND_COLOR = "#00000099";
-const INFO_COLOR = "#aaa";
-
 export default class GameState {
-  private round: number = GameplayConstants.START_ROUND;
-  private frame: number = 0;
-  private difficulty: number = GameplayConstants.MIN_DIFFICULTY;
-  private currentPalette: number = 0;
-  private missileSpeed: number = GameplayConstants.SLOWEST_MISSILE_SPEED;
-  private spawnRate: number = GameplayConstants.SLOWEST_SPAWN_RATE;
-  private score: number = 0;
-  private gameOver: boolean = false;
-  private messageShown: boolean = false;
+  private round = GameplayConstants.MIN_DIFFICULTY_AND_ROUND;
+  private frame = 0;
+  private difficulty = GameplayConstants.MIN_DIFFICULTY_AND_ROUND;
+  private currentPalette = 0;
+  private missileSpeed = GameplayConstants.SLOWEST_MISSILE_SPEED;
+  private spawnRate = GameplayConstants.SLOWEST_SPAWN_RATE;
+  private score = 0;
+  private gameOver = false;
+  private messageShown = false;
 
-  constructor() {}
-
-  getCurrentPalette(): Palette {
+  private getCurrentPalette(): Palette {
     return PALETTES[this.currentPalette];
   }
 
-  resetGame(layers: Layers, cities: Cities, missiles: Missiles): void {
-    this.round = GameplayConstants.START_ROUND;
+  private resetGame(layers: Layers, cities: Cities, missiles: Missiles): void {
+    this.round = GameplayConstants.MIN_DIFFICULTY_AND_ROUND;
     this.frame = 0;
-    this.difficulty = GameplayConstants.MIN_DIFFICULTY;
+    this.difficulty = GameplayConstants.MIN_DIFFICULTY_AND_ROUND;
     this.currentPalette = 0;
     this.missileSpeed = GameplayConstants.SLOWEST_MISSILE_SPEED;
     this.spawnRate = GameplayConstants.SLOWEST_SPAWN_RATE;
@@ -52,7 +46,7 @@ export default class GameState {
     missiles.reset();
   }
 
-  advanceRound(player: Player, cities: Cities): void {
+  private advanceRound(player: Player, cities: Cities): void {
     if (this.round >= GameplayConstants.MAX_ROUND) {
       return;
     }
@@ -79,7 +73,7 @@ export default class GameState {
     }
   }
 
-  drawBackground(
+  private drawBackground(
     layer: Layer,
     ground: Ground,
     hill: Hill,
@@ -93,16 +87,17 @@ export default class GameState {
     }
   }
 
-  spawnMissiles(missiles: Missiles): void {
+  private spawnMissiles(missiles: Missiles): void {
     if (this.frame % this.spawnRate === 0) {
       missiles.spawn(this.difficulty);
     }
   }
 
-  drawAndMoveMissiles(
+  private drawMiddleground(
     layer: Layer,
     ground: Ground,
     hill: Hill,
+    player: Player,
     cities: Cities,
     missiles: Missiles,
     explosions: Explosions,
@@ -115,6 +110,8 @@ export default class GameState {
         palette.missileHead,
         palette.text
       );
+      player.drawTurret(layer, palette.text, palette.missileHead);
+      player.drawCrossHair(layer, missiles, palette.text, palette.missileHead);
       missiles.checkCollision(ground);
       missiles.checkCollision(hill);
       cities.forEach((city) => {
@@ -127,15 +124,18 @@ export default class GameState {
     }
   }
 
-  drawForeground(
+  private drawForeground(
     layer: Layer,
     player: Player,
     cities: Cities,
+    explosions: Explosions,
     palette: Palette
   ): void {
     player.drawInput(layer, palette.background, palette.text);
     if (this.frame % RenderConstants.ANIMATION_SPEED === 0) {
+      player.advance();
       cities.draw(layer, palette.city, palette.mushroomCloud);
+      explosions.draw(layer, palette.mushroomCloud, palette.missileHead);
       drawScore(layer, palette.text, this.score);
     }
     if (this.gameOver && this.messageShown === false) {
@@ -153,8 +153,27 @@ export default class GameState {
     }
   }
 
-  increaseScore(multiplier: number): void {
-    if (this.score === GameplayConstants.MAX_SCORE) {
+  private drawDebug(layer: Option<Layer>) {
+    if (layer === null) {
+      return;
+    }
+    if (this.frame % RenderConstants.ANIMATION_SPEED === 0) {
+      layer.clearRect(0, 0, RenderConstants.WIDTH, RenderConstants.HEIGHT);
+      drawDebugGrid(layer);
+      drawDebugText(layer, {
+        round: this.round,
+        frame: this.frame,
+        difficulty: this.difficulty,
+        currentPalette: this.currentPalette,
+        missileSpeed: this.missileSpeed,
+        spawnRate: this.spawnRate,
+        score: this.score,
+      });
+    }
+  }
+
+  private increaseScore(multiplier: Option<number>): void {
+    if (multiplier === null || this.score === GameplayConstants.MAX_SCORE) {
       return;
     }
     const pendingScore =
@@ -166,84 +185,7 @@ export default class GameState {
     }
   }
 
-  drawAndTargetPlayer(
-    layers: Layers,
-    player: Player,
-    missiles: Missiles,
-    explosions: Explosions,
-    palette: Palette
-  ): void {
-    if (this.frame % this.missileSpeed === 0) {
-      player.drawCrossHair(
-        layers.missile,
-        missiles,
-        palette.text,
-        palette.missileHead
-      );
-      explosions.draw(
-        layers.missile,
-        palette.mushroomCloud,
-        palette.missileHead
-      );
-    }
-    if (this.frame % RenderConstants.ANIMATION_SPEED === 0) {
-      player.drawTurret(layers.foreground, palette.text, palette.missileHead);
-      player.advance();
-      explosions.advance();
-    }
-    const multiplier = player.target(missiles, explosions);
-    if (multiplier !== null) {
-      this.increaseScore(multiplier);
-    }
-  }
-
-  drawDebugInfo(layer: Option<Layer>): void {
-    if (layer === null) {
-      return;
-    }
-    if (this.frame % RenderConstants.ANIMATION_SPEED === 0) {
-      const debugInfo = [
-        `round: ${this.round} / ${GameplayConstants.MAX_ROUND}`,
-        `frame: ${this.frame} / ${GameplayConstants.ROUND_LENGTH}`,
-        `difficulty: ${this.difficulty} / ${GameplayConstants.MAX_DIFFICULTY}`,
-        `currentPalette: ${this.currentPalette} / ${PALETTES.length - 1}`,
-        `missileSpeed: ${this.missileSpeed} / ${GameplayConstants.FASTEST_MISSILE_SPEED}`,
-        `spawnRate: ${this.spawnRate} / ${GameplayConstants.FASTEST_SPAWN_RATE}`,
-        `score: ${this.score} / ${GameplayConstants.MAX_SCORE}`,
-      ];
-      layer.clearRect(0, 0, RenderConstants.WIDTH, RenderConstants.HEIGHT);
-      layer.strokeStyle = GRID_COLOR;
-      for (let j = 0; j < RenderConstants.PIXEL_HEIGHT; j++) {
-        for (let i = 0; i < RenderConstants.PIXEL_WIDTH; i++) {
-          layer.strokeRect(
-            RenderConstants.PIXEL_SIZE * GRID_SIZE * i - 3,
-            RenderConstants.PIXEL_SIZE * GRID_SIZE * j + 1,
-            RenderConstants.PIXEL_SIZE * GRID_SIZE - 1,
-            RenderConstants.PIXEL_SIZE * GRID_SIZE - 1
-          );
-        }
-      }
-      const fontSize = RenderConstants.PIXEL_SIZE * 4;
-      layer.font = `${fontSize}px monospace`;
-      for (let i = 0; i < debugInfo.length; i++) {
-        layer.fillStyle = INFO_BACKGROUND_COLOR;
-        layer.fillRect(
-          RenderConstants.PIXEL_SIZE,
-          fontSize * i,
-          debugInfo[i].length * Math.floor(fontSize * 0.6),
-          fontSize
-        );
-        layer.fillStyle = INFO_COLOR;
-        layer.fillText(
-          debugInfo[i],
-          RenderConstants.PIXEL_SIZE,
-          fontSize * i + fontSize
-        );
-      }
-    }
-  }
-
-  checkGameOver(cities: Cities): void {
+  private checkGameOver(cities: Cities): void {
     if (
       cities.areStanding() === false ||
       this.score >= GameplayConstants.MAX_SCORE
@@ -252,7 +194,7 @@ export default class GameState {
     }
   }
 
-  advanceFrame(
+  public advanceFrame(
     layers: Layers,
     player: Player,
     ground: Ground,
@@ -273,18 +215,20 @@ export default class GameState {
 
     this.drawBackground(layers.background, ground, hill, palette);
     this.spawnMissiles(missiles);
-    this.drawAndMoveMissiles(
-      layers.missile,
+    this.drawMiddleground(
+      layers.middleground,
       ground,
       hill,
+      player,
       cities,
       missiles,
       explosions,
       palette
     );
-    this.drawForeground(layers.foreground, player, cities, palette);
-    this.drawAndTargetPlayer(layers, player, missiles, explosions, palette);
-    this.drawDebugInfo(layers.debug);
+    this.drawForeground(layers.foreground, player, cities, explosions, palette);
+    this.drawDebug(layers.debug);
+    const multiplier = player.target(missiles, explosions);
+    this.increaseScore(multiplier);
     this.checkGameOver(cities);
     this.frame += 1;
   }

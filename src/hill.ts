@@ -1,33 +1,43 @@
 import { RenderConstants } from "./main.ts";
 import { Bound, HexColor, Layer } from "./types.ts";
 
+enum HillConstants {
+  BASE_PIXEL_WIDTH = 27,
+  BASE_PIXEL_HEIGHT = 2,
+  BASE_PIXEL_Y = 17,
+}
+
 export default class Hill {
-  private readonly bounds: Bound[];
+  private readonly bounds: Bound[] = [];
 
   constructor() {
-    this.bounds = [];
-    for (let i = 0; i < 3; i++) {
-      let width = RenderConstants.PIXEL_SIZE * (27 - 10 * i);
-      let x = RenderConstants.WIDTH_MIDDLE - Math.floor(width * 0.5);
+    for (
+      let i = 1, j = HillConstants.BASE_PIXEL_Y;
+      i >= 0;
+      i -= 0.33, j += HillConstants.BASE_PIXEL_HEIGHT
+    ) {
+      const width =
+        RenderConstants.PIXEL_SIZE *
+        Math.floor(HillConstants.BASE_PIXEL_WIDTH * i);
       this.bounds.push({
-        x,
-        y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * (17 + i * 2),
+        x: Math.floor(RenderConstants.WIDTH_MIDDLE - width * 0.5),
+        y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * j,
         width,
-        height: 2 * RenderConstants.PIXEL_SIZE,
+        height: HillConstants.BASE_PIXEL_HEIGHT * RenderConstants.PIXEL_SIZE,
       });
     }
   }
 
-  draw(layer: Layer, groundColor: HexColor): void {
+  public draw(layer: Layer, groundColor: HexColor): void {
     layer.fillStyle = groundColor;
     this.bounds.forEach((bound) => {
       layer.fillRect(bound.x, bound.y, bound.width, bound.height);
     });
   }
 
-  getBounds(): Bound[] {
+  public getBounds(): Bound[] {
     return this.bounds;
   }
 
-  setCollision(): void {}
+  public setCollision(): void {}
 }

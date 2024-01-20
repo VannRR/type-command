@@ -9,7 +9,7 @@ import Clock from "./clock.ts";
 import Player from "./player.ts";
 import { Explosions } from "./explosion.ts";
 
-export const DEBUG = true;
+export const DEBUG = false;
 
 export enum RenderConstants {
   HEIGHT = window.innerHeight > 360 ? window.innerHeight : 360,
@@ -28,10 +28,9 @@ export enum RenderConstants {
 export enum GameplayConstants {
   MAX_SCORE = 9999999,
   BASE_SCORE_INCREMENT = 100,
-  START_ROUND = 1,
   MAX_ROUND = 99999,
-  ROUND_LENGTH = 90 * RenderConstants.FPS,
-  MIN_DIFFICULTY = 1,
+  ROUND_LENGTH = 60 * RenderConstants.FPS,
+  MIN_DIFFICULTY_AND_ROUND = 1,
   MAX_DIFFICULTY = 20,
   SLOWEST_SPAWN_RATE = 8 * RenderConstants.FPS,
   FASTEST_SPAWN_RATE = Math.floor(1 * RenderConstants.FPS),
@@ -70,7 +69,7 @@ const clock = new Clock(() => {
     hill,
     cities,
     missiles,
-    explosions
+    explosions,
   );
 }, RenderConstants.FPS);
 clock.start();

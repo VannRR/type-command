@@ -1,4 +1,4 @@
-import { drawWord, CharConstants } from "./drawWord";
+import { drawWord, CHAR_GRID_SIZE } from "./drawWord";
 import { Explosions } from "./explosion";
 import { RenderConstants } from "./main";
 import { Missiles } from "./missiles";
@@ -15,13 +15,14 @@ export default class Player {
   private inputY: number =
     RenderConstants.HEIGHT -
     RenderConstants.PIXEL_SIZE * 5 -
-    RenderConstants.PIXEL_SIZE_SMALL * CharConstants.PIXEL_HEIGHT;
+    RenderConstants.PIXEL_SIZE_SMALL * CHAR_GRID_SIZE;
   private turretCoords: Vector = {
     x: Math.floor(
       RenderConstants.WIDTH_MIDDLE - RenderConstants.PIXEL_SIZE * 1.5
     ),
     y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * 22,
   };
+
   constructor(appDiv: HTMLDivElement) {
     appDiv.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
@@ -41,39 +42,9 @@ export default class Player {
     });
   }
 
-  advance(): void {
-    this.flash = !this.flash;
-  }
-
-  queueUpdate(): void {
-    this.prevInput = null;
-  }
-
-  drawInput(
-    layer: Layer,
-    backgroundColor: HexColor,
-    textColor: HexColor
-  ): void {
-    if (this.prevInput !== this.currentInput) {
-      layer.clearRect(
-        0,
-        this.inputY - RenderConstants.PIXEL_SIZE_SMALL * 2,
-        RenderConstants.WIDTH,
-        12 * RenderConstants.PIXEL_SIZE_SMALL
-      );
-      drawWord(
-        layer,
-        backgroundColor,
-        textColor,
-        { x: RenderConstants.WIDTH_MIDDLE, y: this.inputY },
-        RenderConstants.PIXEL_SIZE_SMALL,
-        this.currentInput
-      );
-      this.prevInput = this.currentInput;
-    }
-  }
-
-  findCurrentMatch(words: string[]): Option<{ word: string; index: number }> {
+  private findCurrentMatch(
+    words: string[]
+  ): Option<{ word: string; index: number }> {
     if (this.currentInput.length < MIN_INPUT_LENGTH) {
       return null;
     }
@@ -103,7 +74,39 @@ export default class Player {
     return null;
   }
 
-  target(missiles: Missiles, explosions: Explosions): Option<number> {
+  public advance(): void {
+    this.flash = !this.flash;
+  }
+
+  public queueUpdate(): void {
+    this.prevInput = null;
+  }
+
+  public drawInput(
+    layer: Layer,
+    backgroundColor: HexColor,
+    textColor: HexColor
+  ): void {
+    if (this.prevInput !== this.currentInput) {
+      layer.clearRect(
+        0,
+        this.inputY - RenderConstants.PIXEL_SIZE_SMALL * 2,
+        RenderConstants.WIDTH,
+        12 * RenderConstants.PIXEL_SIZE_SMALL
+      );
+      drawWord(
+        layer,
+        backgroundColor,
+        textColor,
+        { x: RenderConstants.WIDTH_MIDDLE, y: this.inputY },
+        RenderConstants.PIXEL_SIZE_SMALL,
+        this.currentInput
+      );
+      this.prevInput = this.currentInput;
+    }
+  }
+
+  public target(missiles: Missiles, explosions: Explosions): Option<number> {
     if (this.submittedInput === null) {
       return null;
     }
@@ -123,7 +126,7 @@ export default class Player {
     return null;
   }
 
-  drawTurret(
+  public drawTurret(
     layer: Layer,
     textColor: HexColor,
     missileHeadColor: HexColor
@@ -137,7 +140,7 @@ export default class Player {
     );
   }
 
-  drawCrossHair(
+  public drawCrossHair(
     layer: Layer,
     missiles: Missiles,
     textColor: HexColor,

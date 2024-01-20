@@ -22,7 +22,7 @@ function createLayer(appDiv: HTMLDivElement): Layer {
 export default function initLayers(appDiv: HTMLDivElement): Layers {
   return {
     background: createLayer(appDiv),
-    missile: createLayer(appDiv),
+    middleground: createLayer(appDiv),
     foreground: createLayer(appDiv),
     debug: DEBUG ? createLayer(appDiv) : null,
   };

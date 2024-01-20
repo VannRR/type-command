@@ -1,10 +1,7 @@
 import { HexColor, Layer, Option, Vector } from "./types.ts";
 import { drawGrid } from "./utility.ts";
 
-export enum CharConstants {
-  PIXEL_WIDTH = 7,
-  PIXEL_HEIGHT = 7,
-}
+export const CHAR_GRID_SIZE = 7;
 
 const CHARS = new Map([
   [
@@ -339,8 +336,8 @@ export function drawWord(
     return;
   }
 
-  const charWidth = CharConstants.PIXEL_WIDTH * pixelSize;
-  const charHeight = CharConstants.PIXEL_HEIGHT * pixelSize;
+  const charWidth = CHAR_GRID_SIZE * pixelSize;
+  const charHeight = CHAR_GRID_SIZE * pixelSize;
   const wordMiddle = Math.floor(word.length * charWidth * WORD_MIDDLE_FACTOR);
 
   if (backgroundColor === null) {

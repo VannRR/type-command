@@ -2,10 +2,8 @@ import { RenderConstants } from "./main.ts";
 import { drawGrid } from "./utility.ts";
 import { HexColor, Layer, PixelGrid } from "./types.ts";
 
-enum DigitsConstants {
-  PIXEL_WIDTH = 7,
-  PIXEL_HEIGHT = 7,
-}
+const DIGIT_GRID_SIZE = 7;
+
 const DIGITS: PixelGrid[] = [
   [
     [0, 1, 1, 1, 1, 1, 0],
@@ -110,8 +108,8 @@ export default function drawScore(
     throw new Error("Score must be a number");
   }
 
-  const digitWidth = DigitsConstants.PIXEL_WIDTH * RenderConstants.PIXEL_SIZE;
-  const digitHeight = DigitsConstants.PIXEL_HEIGHT * RenderConstants.PIXEL_SIZE;
+  const digitWidth = DIGIT_GRID_SIZE * RenderConstants.PIXEL_SIZE;
+  const digitHeight = DIGIT_GRID_SIZE * RenderConstants.PIXEL_SIZE;
   const scoreString = score.toString();
   const scoreMiddle =
     RenderConstants.WIDTH_MIDDLE -

@@ -42,7 +42,7 @@ export default class Clock {
     }
   }
 
-  start(): void {
+  public start(): void {
     if (this.on === false) {
       this.on = true;
       this.init();
@@ -50,13 +50,13 @@ export default class Clock {
     }
   }
 
-  stop(): void {
+  public stop(): void {
     if (this.on === true) {
       this.on = false;
     }
   }
 
-  toggleDebugMode(): void {
+  public toggleDebugMode(): void {
     this.debugMode = !this.debugMode;
   }
 }

@@ -1,7 +1,7 @@
 import { drawWord } from "./drawWord.ts";
 import { RenderConstants } from "./main.ts";
-import WORDS from "./words.json";
 import { CollisionObject, HexColor, Layer, Vector } from "./types.ts";
+import { generateRandomVector, getRandomWord } from "./utility.ts";
 
 enum MissileConstants {
   INITIAL_Y = 14,
@@ -10,53 +10,11 @@ enum MissileConstants {
   ANGLED_ABS_COS = 0.23,
 }
 
-const RANDOM_WORD_THRESHOLD = 0.5;
-const MIN_VECTOR_THRESHOLD = 0.01;
-const VECTOR_COLLISION_SCALE_FACTOR = 25;
-
-function generateRandomVector(x: number): Vector {
-  const angle = (Math.random() * Math.PI) / 2 - Math.PI / 4 - 0.5 * Math.PI;
-  const vecY = -Math.sin(angle);
-  let vecX = Math.cos(angle);
-
-  if (
-    vecX * VECTOR_COLLISION_SCALE_FACTOR * RenderConstants.PIXEL_SIZE + x >
-      RenderConstants.PIXEL_WIDTH ||
-    vecX * VECTOR_COLLISION_SCALE_FACTOR * RenderConstants.PIXEL_SIZE + x < 0
-  ) {
-    vecX = -vecX;
-  }
-  return {
-    x: Math.abs(vecX) >= MIN_VECTOR_THRESHOLD ? vecX : 0,
-    y: Math.abs(vecY) >= MIN_VECTOR_THRESHOLD ? vecY : 0,
-  };
-}
-
-function getRandomWord(difficulty: number): string {
-  if (!WORDS || WORDS.length === 0) {
-    throw new Error("WORDS array is empty or not defined");
-  }
-
-  let charCount = difficulty - 1;
-  for (let i = charCount; i >= 0; i--) {
-    if (Math.random() > RANDOM_WORD_THRESHOLD) {
-      break;
-    }
-    charCount = i;
-  }
-
-  charCount = Math.min(charCount, WORDS.length - 1);
-  const currentWords = WORDS[charCount];
-  const randomWordIndex = Math.floor(Math.random() * currentWords.length);
-
-  return currentWords[randomWordIndex].toUpperCase();
-}
-
 export default class Missile {
   private readonly width: number = RenderConstants.PIXEL_SIZE;
   private readonly height: number = RenderConstants.PIXEL_SIZE;
+  private readonly trail: Vector[] = [];
   private movementBuffer: Vector = { x: 0, y: 0 };
-  private trail: Vector[] = [];
   private movementVector: Vector;
   private coords: Vector;
   private word: string;
@@ -75,15 +33,15 @@ export default class Missile {
     this.word = getRandomWord(difficulty);
   }
 
-  getCoords(): Vector {
+  public getCoords(): Vector {
     return this.coords;
   }
 
-  getWord(): string {
+  public getWord(): string {
     return this.word;
   }
 
-  move(): void {
+  public move(): void {
     this.movementBuffer.x += this.movementVector.x;
     this.movementBuffer.y += this.movementVector.y;
     if (Math.abs(this.movementBuffer.x) >= 1) {
@@ -96,7 +54,7 @@ export default class Missile {
     }
   }
 
-  draw(
+  public draw(
     layer: Layer,
     missileTrailColor: HexColor,
     missileHeadColor: HexColor,
@@ -140,7 +98,7 @@ export default class Missile {
     layer.fillRect(this.coords.x, this.coords.y, this.width, this.height);
   }
 
-  checkCollision(other: CollisionObject): boolean {
+  public checkCollision(other: CollisionObject): boolean {
     if (this.coords.y > RenderConstants.HEIGHT) {
       return true;
     }
@@ -167,31 +125,28 @@ export default class Missile {
 }
 
 export class Missiles {
-  private all: Missile[];
-  constructor() {
-    this.all = [];
-  }
+  private all: Missile[] = [];
 
-  spawn(difficulty: number): void {
+  public spawn(difficulty: number): void {
     const min = RenderConstants.PIXEL_WIDTH * 0.1;
     const max = RenderConstants.PIXEL_WIDTH * 0.9;
     const x = Math.floor(Math.random() * (max - min) + min);
     const y = MissileConstants.INITIAL_Y;
-    const movementVector = generateRandomVector(x);
+    const movementVector = generateRandomVector({ x, y });
     this.all.push(new Missile(x, y, movementVector, difficulty));
   }
 
-  move(): void {
+  public move(): void {
     for (const missile of this.all) {
       missile.move();
     }
   }
 
-  getCoordsByIndex(index: number): Vector {
+  public getCoordsByIndex(index: number): Vector {
     return this.all[index].getCoords();
   }
 
-  getWords(): string[] {
+  public getWords(): string[] {
     const words = [];
     for (const missile of this.all) {
       words.push(missile.getWord());
@@ -199,11 +154,11 @@ export class Missiles {
     return words;
   }
 
-  reset(): void {
+  public reset(): void {
     this.all = [];
   }
 
-  draw(
+  public draw(
     layer: Layer,
     missileTrailColor: HexColor,
     missileHeadColor: HexColor,
@@ -215,7 +170,7 @@ export class Missiles {
     });
   }
 
-  checkCollision(other: CollisionObject): void {
+  public checkCollision(other: CollisionObject): void {
     const survivingMissiles: Missile[] = [];
     for (const missile of this.all) {
       if (!missile.checkCollision(other)) {

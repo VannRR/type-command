@@ -37,7 +37,17 @@ export interface Palette {
 
 export interface Layers {
   background: Layer;
-  missile: Layer;
+  middleground: Layer;
   foreground: Layer;
   debug: Option<Layer>;
+}
+
+export interface DebugValues {
+  round: number;
+  frame: number;
+  difficulty: number;
+  currentPalette: number;
+  missileSpeed: number;
+  spawnRate: number;
+  score: number;
 }
