@@ -2,7 +2,7 @@ import "./style.css";
 import Game from "./game.ts";
 import Clock from "./clock.ts";
 
-export const DEBUG = true;
+export const DEBUG = false;
 
 export enum RenderConstants {
   HEIGHT = window.innerHeight > 360 ? window.innerHeight : 360,
@@ -26,10 +26,10 @@ export enum GameplayConstants {
   ROUND_LENGTH = 60 * RenderConstants.FPS,
   MIN_DIFFICULTY_AND_ROUND = 1,
   MAX_DIFFICULTY = 20,
-  SLOWEST_SPAWN_RATE = 8 * RenderConstants.FPS,
-  FASTEST_SPAWN_RATE = Math.floor(1 * RenderConstants.FPS),
+  SLOWEST_SPAWN_RATE = Math.floor(5.8 * RenderConstants.FPS),
+  FASTEST_SPAWN_RATE = Math.floor(4.2 * RenderConstants.FPS),
   SLOWEST_MISSILE_SPEED = Math.floor(RenderConstants.FPS * 0.25),
-  FASTEST_MISSILE_SPEED = Math.floor(RenderConstants.FPS * 0.067),
+  FASTEST_MISSILE_SPEED = Math.floor(RenderConstants.FPS * 0.1),
   SPAWN_INCREMENT = (SLOWEST_SPAWN_RATE - FASTEST_SPAWN_RATE) /
     (MAX_DIFFICULTY - 1),
   SPEED_INCREMENT = (SLOWEST_MISSILE_SPEED - FASTEST_MISSILE_SPEED) /
