@@ -1,9 +1,25 @@
-import { RenderConstants } from "./main";
+import { GameplayConstants, RenderConstants } from "./main";
 import { PixelGrid, Layer, Vector } from "./types";
 import WORDS from "./words.json";
 
-const RANDOM_WORD_THRESHOLD = 0.5;
-const VECTOR_COLLISION_THRESHOLD = 1.3;
+const RANDOM_WORD_THRESHOLD = 0.75;
+const VECTOR_COLLISION_THRESHOLD = 1.35;
+
+export function isAlphabeticalChar(char: string) {
+  if (char.length !== 1) {
+    return false;
+  }
+
+  const charCode = char.charCodeAt(0);
+  if (
+    (charCode >= 97 && charCode <= 122) ||
+    (charCode >= 65 && charCode <= 90)
+  ) {
+    return true;
+  }
+
+  return false;
+}
 
 export function drawGrid(
   layer: Layer,
@@ -51,16 +67,21 @@ export function getRandomWord(difficulty: number): string {
     throw new Error("WORDS array is empty or not defined");
   }
 
-  let charCount = difficulty - 1;
-  for (let i = charCount; i >= 0; i--) {
+  let wordsIndex = Math.round(
+    ((difficulty - GameplayConstants.MIN_DIFFICULTY_AND_ROUND) *
+      (WORDS.length - 1)) /
+      (GameplayConstants.MAX_DIFFICULTY -
+        GameplayConstants.MIN_DIFFICULTY_AND_ROUND)
+  );
+
+  for (let i = wordsIndex; i >= 0; i--) {
     if (Math.random() > RANDOM_WORD_THRESHOLD) {
       break;
     }
-    charCount = i;
+    wordsIndex = i;
   }
 
-  charCount = Math.min(charCount, WORDS.length - 1);
-  const currentWords = WORDS[charCount];
+  const currentWords = WORDS[wordsIndex];
   const randomWordIndex = Math.floor(Math.random() * currentWords.length);
 
   return currentWords[randomWordIndex].toUpperCase();

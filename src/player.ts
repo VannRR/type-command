@@ -1,6 +1,7 @@
 import { drawWord, CHAR_GRID_SIZE } from "./drawWord";
 import { RenderConstants } from "./main";
 import { HexColor, Layer, Vector, Option } from "./types";
+import { isAlphabeticalChar } from "./utility";
 
 const MIN_INPUT_LENGTH = 1;
 const MAX_INPUT_LENGTH = 12;
@@ -55,7 +56,7 @@ export default class Player {
         );
       } else if (
         this.currentInput.length < MAX_INPUT_LENGTH &&
-        /^(!|[a-zA-Z])$/.test(event.key)
+        (event.key === "!" || isAlphabeticalChar(event.key))
       ) {
         this.currentInput += event.key.toUpperCase();
       }
