@@ -75,7 +75,7 @@ export function getRandomWord(difficulty: number): string {
   );
 
   for (let i = wordsIndex; i >= 0; i--) {
-    if (Math.random() > RANDOM_WORD_THRESHOLD) {
+    if (Math.random() < RANDOM_WORD_THRESHOLD) {
       break;
     }
     wordsIndex = i;

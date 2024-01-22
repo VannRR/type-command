@@ -27,9 +27,9 @@ export enum GameplayConstants {
   MIN_DIFFICULTY_AND_ROUND = 1,
   MAX_DIFFICULTY = 20,
   SLOWEST_SPAWN_RATE = Math.floor(5.8 * RenderConstants.FPS),
-  FASTEST_SPAWN_RATE = Math.floor(4.2 * RenderConstants.FPS),
+  FASTEST_SPAWN_RATE = Math.floor(2.2 * RenderConstants.FPS),
   SLOWEST_MISSILE_SPEED = Math.floor(RenderConstants.FPS * 0.25),
-  FASTEST_MISSILE_SPEED = Math.floor(RenderConstants.FPS * 0.1),
+  FASTEST_MISSILE_SPEED = Math.floor(RenderConstants.FPS * 0.06),
   SPAWN_INCREMENT = (SLOWEST_SPAWN_RATE - FASTEST_SPAWN_RATE) /
     (MAX_DIFFICULTY - 1),
   SPEED_INCREMENT = (SLOWEST_MISSILE_SPEED - FASTEST_MISSILE_SPEED) /

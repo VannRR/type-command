@@ -3,8 +3,13 @@ import { RenderConstants } from "./main";
 import { HexColor, Layer, Vector, Option } from "./types";
 import { isAlphabeticalChar } from "./utility";
 
-const MIN_INPUT_LENGTH = 1;
-const MAX_INPUT_LENGTH = 12;
+enum PlayerConstants {
+  AVERAGE_CHARS_PER_SECOND = 5.6,
+  SECONDS_IN_MINUTE = 60,
+  MIN_INPUT_LENGTH = 1,
+  MAX_INPUT_LENGTH = 12,
+}
+
 const DIFFICULTY_SETTINGS = [
   "!ONE",
   "!TWO",
@@ -55,7 +60,7 @@ export default class Player {
           this.currentInput.length - 1
         );
       } else if (
-        this.currentInput.length < MAX_INPUT_LENGTH &&
+        this.currentInput.length < PlayerConstants.MAX_INPUT_LENGTH &&
         (event.key === "!" || isAlphabeticalChar(event.key))
       ) {
         this.currentInput += event.key.toUpperCase();
@@ -64,7 +69,7 @@ export default class Player {
   }
 
   public getCurrentMatch(words: string[]): Option<number> {
-    if (this.currentInput.length < MIN_INPUT_LENGTH) {
+    if (this.currentInput.length < PlayerConstants.MIN_INPUT_LENGTH) {
       return null;
     }
 
@@ -179,5 +184,47 @@ export default class Player {
       RenderConstants.PIXEL_SIZE,
       RenderConstants.PIXEL_SIZE * 3
     );
+  }
+
+  public SimulateTyping(
+    words: string[],
+    wpm: number,
+    error: number,
+    frame: number
+  ): void {
+    if (words.length < 2) {
+      this.currentInput = "";
+      return;
+    }
+
+    const cps = Math.round(
+      (PlayerConstants.SECONDS_IN_MINUTE /
+        (wpm * PlayerConstants.AVERAGE_CHARS_PER_SECOND)) *
+        RenderConstants.FPS
+    );
+
+    if (frame % cps === 0) {
+      if (Math.random() <= error) {
+        this.currentInput = this.currentInput.concat("!!!");
+        return;
+      }
+
+      const selectedWord = words[0];
+
+      if (selectedWord === this.currentInput) {
+        this.submittedInput = this.currentInput;
+        this.currentInput = "";
+        return;
+      }
+
+      const currentIndex = this.currentInput.length;
+
+      if (this.currentInput[currentIndex - 1] === "!") {
+        this.currentInput = this.currentInput.substring(0, currentIndex - 2);
+        return;
+      }
+
+      this.currentInput = this.currentInput.concat(selectedWord[currentIndex]);
+    }
   }
 }

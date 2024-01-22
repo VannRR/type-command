@@ -18,8 +18,8 @@ async function main() {
   const allSortedWords: string[][] = [];
 
   for (let i = CHAR_COUNT_MIN; i <= CHAR_COUNT_MAX; i++) {
-    const filteredWords = filterDictArray(dictArray, i);
-    const sortedRandomWords = getSortedRandomWords(filteredWords);
+    const filteredDict = filterDictArray(dictArray, i);
+    const sortedRandomWords = getSortedRandomWords(filteredDict);
     allSortedWords.push(sortedRandomWords);
   }
 
@@ -55,18 +55,23 @@ function filterDictArray(dictArray: string[], wordLength: number): string[] {
   );
 
   if (filteredDict.length === 0) {
-    throw new Error(`No matches for filter of word length ${wordLength}.`);
+    throw new Error(`No matches for filter of word length: ${wordLength}.`);
   }
 
   return filteredDict;
 }
 
-function getSortedRandomWords(filteredWords: string[]): string[] {
+function getSortedRandomWords(filteredDict: string[]): string[] {
+  if (filteredDict.length < WORD_COUNT) {
+    throw new Error(
+      `Filtered dict length: ${filteredDict.length} needs to be greater then word count: ${WORD_COUNT}.`
+    );
+  }
   const randomWords: string[] = [];
 
   for (let i = 0; i < WORD_COUNT * 20; i++) {
-    const randomIndex = Math.floor(Math.random() * filteredWords.length);
-    const randomWord = filteredWords[randomIndex];
+    const randomIndex = Math.floor(Math.random() * filteredDict.length);
+    const randomWord = filteredDict[randomIndex];
     if (
       randomWords.includes(randomWord) === false &&
       profanity.exists(randomWord) === false
@@ -79,7 +84,7 @@ function getSortedRandomWords(filteredWords: string[]): string[] {
   }
 
   throw new Error(
-    `Word array has ${randomWords.length} random words, expects ${WORD_COUNT}.`
+    `Random words array has length: ${randomWords.length}, expects ${WORD_COUNT}.`
   );
 }
 

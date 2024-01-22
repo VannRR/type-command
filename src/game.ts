@@ -89,7 +89,7 @@ export default class Game {
     }
   }
 
-  private setDifficulty() {
+  private getDifficulty() {
     const difficulty = this.player.getDifficulty();
     if (difficulty === null) {
       return;
@@ -245,7 +245,7 @@ export default class Game {
       this.state.frame = 0;
     }
 
-    this.setDifficulty();
+    this.getDifficulty();
 
     const palette = this.getCurrentPalette();
 

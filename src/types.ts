@@ -3,13 +3,13 @@ import { Explosion } from "./explosion";
 import Ground from "./ground";
 import Hill from "./hill";
 
+export type Option<T> = T | null;
+
 export type Layer = CanvasRenderingContext2D;
 
 export type HexColor = `#${string}`;
 
 export type PixelGrid = number[][];
-
-export type Option<T> = T | null;
 
 export type CollisionObject = Ground | Hill | City | Explosion;
 

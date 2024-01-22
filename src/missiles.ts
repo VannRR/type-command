@@ -133,8 +133,8 @@ export class Missiles {
       return;
     }
 
-    const min = RenderConstants.PIXEL_WIDTH * 0.1;
-    const max = RenderConstants.PIXEL_WIDTH * 0.9;
+    const min = RenderConstants.PIXEL_WIDTH * 0.12;
+    const max = RenderConstants.PIXEL_WIDTH * 0.88;
     const x = Math.floor(Math.random() * (max - min) + min);
     const y = MissileConstants.INITIAL_Y;
     const movementVector = generateRandomVector({ x, y });
