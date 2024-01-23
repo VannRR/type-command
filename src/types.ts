@@ -3,7 +3,7 @@ import { Explosion } from "./explosion";
 import Ground from "./ground";
 import Hill from "./hill";
 
-export type Option<T> = T | null;
+export type Option<T> = null | T;
 
 export type Layer = CanvasRenderingContext2D;
 

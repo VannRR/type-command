@@ -1,6 +1,7 @@
 import { GameplayConstants, RenderConstants } from "./main.ts";
 import { Bound, HexColor, Layer, PixelGrid, Vector, Option } from "./types.ts";
 import { drawGrid } from "./utility.ts";
+import Sound from "./sound.ts";
 
 const EXPLOSION_GRID_SIZE = 11;
 
@@ -137,6 +138,11 @@ export class Explosion {
 
 export class Explosions {
   private readonly all: Explosion[] = [];
+  private readonly sound: Sound;
+
+  constructor(sound: Sound) {
+    this.sound = sound;
+  }
 
   public spawn(coords: Option<Vector>) {
     if (
@@ -147,6 +153,7 @@ export class Explosions {
     }
     const explosion = new Explosion(coords);
     this.all.push(explosion);
+    this.sound.playExplosionFX();
   }
 
   public forEach(func: (explosion: Explosion) => void): void {

@@ -1,5 +1,6 @@
 import { drawWord, CHAR_GRID_SIZE } from "./drawWord";
 import { RenderConstants } from "./main";
+import Sound from "./sound";
 import { HexColor, Layer, Vector, Option } from "./types";
 import { isAlphabeticalChar } from "./utility";
 
@@ -34,6 +35,7 @@ const DIFFICULTY_SETTINGS = [
 ];
 
 export default class Player {
+  private readonly sound: Sound;
   private prevInput: Option<string> = null;
   private currentInput: string = "";
   private submittedInput: Option<string> = null;
@@ -49,7 +51,8 @@ export default class Player {
     y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * 22,
   };
 
-  constructor(appDiv: HTMLDivElement) {
+  constructor(appDiv: HTMLDivElement, sound: Sound) {
+    this.sound = sound;
     appDiv.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         this.submittedInput = this.currentInput;
@@ -59,11 +62,13 @@ export default class Player {
           0,
           this.currentInput.length - 1
         );
+        this.sound.playBackspaceFX();
       } else if (
         this.currentInput.length < PlayerConstants.MAX_INPUT_LENGTH &&
         (event.key === "!" || isAlphabeticalChar(event.key))
       ) {
         this.currentInput += event.key.toUpperCase();
+        this.sound.playTypingFX();
       }
     });
   }

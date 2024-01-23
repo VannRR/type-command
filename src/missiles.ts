@@ -2,6 +2,7 @@ import { drawWord } from "./drawWord.ts";
 import { GameplayConstants, RenderConstants } from "./main.ts";
 import { CollisionObject, HexColor, Layer, Vector, Option } from "./types.ts";
 import { generateRandomVector, getRandomWord } from "./utility.ts";
+import Sound from "./sound.ts";
 
 enum MissileConstants {
   INITIAL_Y = 14,
@@ -125,8 +126,13 @@ export default class Missile {
 }
 
 export class Missiles {
+  private readonly sound: Sound;
   private all: Missile[] = [];
   private cleared = true;
+
+  constructor(sound: Sound) {
+    this.sound = sound;
+  }
 
   public spawn(difficulty: number): void {
     if (this.all.length >= GameplayConstants.MAX_MISSILES_AND_EXPLOSIONS) {
@@ -212,6 +218,7 @@ export class Missiles {
         return { coords: missileCoords, multiplier: word.length };
       }
     }
+    this.sound.playNoMatchFX();
     return { coords: null, multiplier: null };
   }
 }

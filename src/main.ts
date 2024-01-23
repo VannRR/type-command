@@ -1,6 +1,7 @@
 import "./style.css";
 import Game from "./game.ts";
 import Clock from "./clock.ts";
+import Sound from "./sound.ts";
 
 export const DEBUG = false;
 
@@ -42,7 +43,10 @@ if (!appDiv) {
 }
 appDiv.focus();
 
-const game = new Game(appDiv);
+const sound = new Sound();
+await sound.init();
+
+const game = new Game(appDiv, sound);
 
 const clock = new Clock(() => {
   game.advanceFrame();

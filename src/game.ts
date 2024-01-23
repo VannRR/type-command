@@ -10,16 +10,18 @@ import { RenderConstants, GameplayConstants } from "./main";
 import { Missiles } from "./missiles";
 import PALETTES from "./palettes";
 import Player from "./player";
+import Sound from "./sound";
 import { Layers, Palette, Option, GameState } from "./types";
 
 export default class Game {
-  private ground = new Ground();
-  private hill = new Hill();
-  private cities = new Cities();
-  private missiles = new Missiles();
-  private explosions = new Explosions();
-  private layers: Layers;
-  private player: Player;
+  private readonly ground = new Ground();
+  private readonly hill = new Hill();
+  private readonly cities = new Cities();
+  private readonly explosions: Explosions;
+  private readonly missiles: Missiles;
+  private readonly sound: Sound;
+  private readonly player: Player;
+  private readonly layers: Layers;
 
   public readonly state: GameState = {
     round: GameplayConstants.MIN_DIFFICULTY_AND_ROUND,
@@ -33,9 +35,12 @@ export default class Game {
     messageShown: false,
   };
 
-  constructor(appDiv: HTMLDivElement) {
+  constructor(appDiv: HTMLDivElement, sound: Sound) {
     this.layers = initLayers(appDiv);
-    this.player = new Player(appDiv);
+    this.sound = sound;
+    this.player = new Player(appDiv, this.sound);
+    this.explosions = new Explosions(this.sound);
+    this.missiles = new Missiles(this.sound);
   }
 
   private getCurrentPalette(): Palette {
@@ -60,6 +65,7 @@ export default class Game {
     );
     this.cities.reset();
     this.missiles.reset();
+    this.sound.reset();
   }
 
   private advanceRound(): void {
