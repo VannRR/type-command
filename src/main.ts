@@ -37,18 +37,32 @@ export enum GameplayConstants {
     (MAX_DIFFICULTY - 1),
 }
 
-const appDiv = document.querySelector<HTMLDivElement>("#app");
-if (!appDiv) {
-  throw new Error("No div with id 'app' available.");
+const gameContainer = document.querySelector<HTMLDivElement>(
+  "#game-container-f5a43037"
+);
+if (!gameContainer) {
+  throw new Error("No div with id 'game-container-f5a43037' available.");
 }
-appDiv.focus();
+gameContainer.style.width = `${RenderConstants.WIDTH}px`;
+gameContainer.style.height = `${RenderConstants.HEIGHT}px`;
 
-const sound = new Sound();
-await sound.init();
+const startButton = document.createElement("button");
+startButton.innerText = "Start Game";
+startButton.id = "start-button-946738bc";
+gameContainer.appendChild(startButton);
 
-const game = new Game(appDiv, sound);
+startButton.onclick = async () => {
+  gameContainer.focus();
+  gameContainer.removeChild(startButton);
 
-const clock = new Clock(() => {
-  game.advanceFrame();
-}, RenderConstants.FPS);
-clock.start();
+  const sound = new Sound();
+  await sound.init();
+
+  const game = new Game(gameContainer, sound);
+  game.resetGame();
+
+  const clock = new Clock(() => {
+    game.advanceFrame();
+  }, RenderConstants.FPS);
+  clock.start();
+};

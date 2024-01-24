@@ -16,7 +16,7 @@ import { Layers, Palette, Option, GameState } from "./types";
 export default class Game {
   private readonly ground = new Ground();
   private readonly hill = new Hill();
-  private readonly cities = new Cities();
+  private readonly cities: Cities;
   private readonly explosions: Explosions;
   private readonly missiles: Missiles;
   private readonly sound: Sound;
@@ -35,12 +35,13 @@ export default class Game {
     messageShown: false,
   };
 
-  constructor(appDiv: HTMLDivElement, sound: Sound) {
-    this.layers = initLayers(appDiv);
+  constructor(gameContainer: HTMLDivElement, sound: Sound) {
+    this.layers = initLayers(gameContainer);
     this.sound = sound;
-    this.player = new Player(appDiv, this.sound);
+    this.player = new Player(gameContainer, this.sound);
     this.explosions = new Explosions(this.sound);
     this.missiles = new Missiles(this.sound);
+    this.cities = new Cities(this.sound);
   }
 
   private getCurrentPalette(): Palette {
@@ -66,6 +67,7 @@ export default class Game {
     this.cities.reset();
     this.missiles.reset();
     this.sound.reset();
+    this.sound.playGameStartFX();
   }
 
   private advanceRound(): void {
@@ -233,11 +235,12 @@ export default class Game {
   }
 
   private checkGameOver(): void {
-    if (
-      this.cities.areStanding() === false ||
-      this.state.score >= GameplayConstants.MAX_SCORE
-    ) {
+    if (this.cities.areStanding() === false) {
       this.state.gameOver = true;
+      this.sound.playGameOverFX();
+    } else if (this.state.score >= GameplayConstants.MAX_SCORE) {
+      this.state.gameOver = true;
+      this.sound.playMaxScoreFX();
     }
   }
 

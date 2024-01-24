@@ -1,4 +1,5 @@
 import { RenderConstants } from "./main.ts";
+import Sound from "./sound.ts";
 import { Bound, PixelGrid, HexColor, Layer, Vector, Option } from "./types.ts";
 import { drawGrid } from "./utility.ts";
 
@@ -53,6 +54,7 @@ const CITY_FRAMES: PixelGrid[] = [
 
 export class City {
   private readonly coords: Vector;
+  private readonly sound: Sound;
   private readonly width: number =
     CityConstants.GRID_WIDTH * RenderConstants.PIXEL_SIZE;
   private readonly height: number =
@@ -60,7 +62,8 @@ export class City {
   private frame: number = 0;
   private updated: boolean = false;
 
-  constructor(x: number) {
+  constructor(x: number, sound: Sound) {
+    this.sound = sound;
     this.coords = {
       x,
       y:
@@ -132,19 +135,24 @@ export class City {
   public setCollision(): void {
     if (this.frame === 0) {
       this.advance();
+      this.sound.playCollapseFX();
     }
   }
 }
 
 export class Cities {
-  private readonly all: City[] = [
-    new City(Math.floor(RenderConstants.WIDTH * 0.104)),
-    new City(Math.floor(RenderConstants.WIDTH * 0.223)),
-    new City(Math.floor(RenderConstants.WIDTH * 0.34)),
-    new City(Math.floor(RenderConstants.WIDTH * 0.615)),
-    new City(Math.floor(RenderConstants.WIDTH * 0.734)),
-    new City(Math.floor(RenderConstants.WIDTH * 0.855)),
-  ];
+  private readonly all: City[];
+
+  constructor(sound: Sound) {
+    this.all = [
+      new City(Math.floor(RenderConstants.WIDTH * 0.104), sound),
+      new City(Math.floor(RenderConstants.WIDTH * 0.223), sound),
+      new City(Math.floor(RenderConstants.WIDTH * 0.34), sound),
+      new City(Math.floor(RenderConstants.WIDTH * 0.615), sound),
+      new City(Math.floor(RenderConstants.WIDTH * 0.734), sound),
+      new City(Math.floor(RenderConstants.WIDTH * 0.855), sound),
+    ];
+  }
 
   public draw(
     layer: Layer,

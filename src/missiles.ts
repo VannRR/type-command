@@ -190,13 +190,12 @@ export class Missiles {
   }
 
   public checkCollision(other: CollisionObject): void {
-    const survivingMissiles: Missile[] = [];
-    for (const missile of this.all) {
-      if (!missile.checkCollision(other)) {
-        survivingMissiles.push(missile);
+    for (let i = this.all.length - 1; i >= 0; i--) {
+      if (this.all[i].checkCollision(other)) {
+        this.all.splice(i, 1);
+        this.sound.playCollisionFX();
       }
     }
-    this.all = survivingMissiles;
   }
 
   public destroy(submittedInput: Option<string>): {

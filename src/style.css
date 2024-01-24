@@ -2,16 +2,30 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #222;
-  min-width: 100vw;
-  min-height: 100vh;
 }
 
-#app {
+#game-container-f5a43037 {
   display: grid;
+  background: #222;
 }
 
-canvas {
+.game-layer-17c04965 {
   grid-row: 1;
   grid-column: 1;
+}
+
+#start-button-946738bc {
+  background: #000000;
+  color: #5f662d;
+  border: none;
+  border-bottom: 2vh solid #357335;
+  min-width: auto;
+  min-height: auto;
+  padding: 0.4vh 1.6vh;
+  font: bolder 4vh "Roboto", monospace;
+  margin: auto;
+}
+
+#start-button-946738bc:hover {
+  color: #ececec;
 }

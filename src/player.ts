@@ -51,9 +51,9 @@ export default class Player {
     y: RenderConstants.HEIGHT - RenderConstants.PIXEL_SIZE * 22,
   };
 
-  constructor(appDiv: HTMLDivElement, sound: Sound) {
+  constructor(gameContainer: HTMLDivElement, sound: Sound) {
     this.sound = sound;
-    appDiv.addEventListener("keydown", (event) => {
+    gameContainer.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         this.submittedInput = this.currentInput;
         this.currentInput = "";
