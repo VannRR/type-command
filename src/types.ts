@@ -3,6 +3,17 @@ import { Explosion } from "./explosion";
 import Ground from "./ground";
 import Hill from "./hill";
 
+export type SoundFX =
+  | "backspace"
+  | "collapse"
+  | "collision"
+  | "explosion"
+  | "game-over"
+  | "game-start"
+  | "max-score"
+  | "no-match"
+  | "typing";
+
 export type Option<T> = null | T;
 
 export type Layer = CanvasRenderingContext2D;

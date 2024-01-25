@@ -1,7 +1,6 @@
 import "./style.css";
 import Game from "./game.ts";
 import Clock from "./clock.ts";
-import Sound from "./sound.ts";
 
 export const DEBUG = false;
 
@@ -55,11 +54,8 @@ startButton.onclick = async () => {
   gameContainer.focus();
   gameContainer.removeChild(startButton);
 
-  const sound = new Sound();
-  await sound.init();
-
-  const game = new Game(gameContainer, sound);
-  game.resetGame();
+  const game = new Game(gameContainer);
+  await game.init();
 
   const clock = new Clock(() => {
     game.advanceFrame();

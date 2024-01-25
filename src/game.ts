@@ -14,12 +14,12 @@ import Sound from "./sound";
 import { Layers, Palette, Option, GameState } from "./types";
 
 export default class Game {
+  private readonly sound = new Sound();
   private readonly ground = new Ground();
   private readonly hill = new Hill();
   private readonly cities: Cities;
   private readonly explosions: Explosions;
   private readonly missiles: Missiles;
-  private readonly sound: Sound;
   private readonly player: Player;
   private readonly layers: Layers;
 
@@ -35,9 +35,8 @@ export default class Game {
     messageShown: false,
   };
 
-  constructor(gameContainer: HTMLDivElement, sound: Sound) {
+  constructor(gameContainer: HTMLDivElement) {
     this.layers = initLayers(gameContainer);
-    this.sound = sound;
     this.player = new Player(gameContainer, this.sound);
     this.explosions = new Explosions(this.sound);
     this.missiles = new Missiles(this.sound);
@@ -48,7 +47,7 @@ export default class Game {
     return PALETTES[this.state.currentPalette];
   }
 
-  public resetGame(): void {
+  private resetGame(): void {
     this.state.round = GameplayConstants.MIN_DIFFICULTY_AND_ROUND;
     this.state.frame = 0;
     this.state.difficulty = GameplayConstants.MIN_DIFFICULTY_AND_ROUND;
@@ -67,7 +66,7 @@ export default class Game {
     this.cities.reset();
     this.missiles.reset();
     this.sound.reset();
-    this.sound.playGameStartFX();
+    this.sound.playSoundFX("game-start");
   }
 
   private advanceRound(): void {
@@ -237,11 +236,16 @@ export default class Game {
   private checkGameOver(): void {
     if (this.cities.areStanding() === false) {
       this.state.gameOver = true;
-      this.sound.playGameOverFX();
+      this.sound.playSoundFX("game-over");
     } else if (this.state.score >= GameplayConstants.MAX_SCORE) {
       this.state.gameOver = true;
-      this.sound.playMaxScoreFX();
+      this.sound.playSoundFX("max-score");
     }
+  }
+
+  public async init(): Promise<void> {
+    await this.sound.init();
+    this.resetGame();
   }
 
   public advanceFrame(): void {

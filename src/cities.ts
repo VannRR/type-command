@@ -135,7 +135,7 @@ export class City {
   public setCollision(): void {
     if (this.frame === 0) {
       this.advance();
-      this.sound.playCollapseFX();
+      this.sound.playSoundFX("collapse");
     }
   }
 }

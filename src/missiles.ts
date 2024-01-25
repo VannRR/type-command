@@ -193,7 +193,7 @@ export class Missiles {
     for (let i = this.all.length - 1; i >= 0; i--) {
       if (this.all[i].checkCollision(other)) {
         this.all.splice(i, 1);
-        this.sound.playCollisionFX();
+        this.sound.playSoundFX("collision");
       }
     }
   }
@@ -217,7 +217,7 @@ export class Missiles {
         return { coords: missileCoords, multiplier: word.length };
       }
     }
-    this.sound.playNoMatchFX();
+    this.sound.playSoundFX("no-match");
     return { coords: null, multiplier: null };
   }
 }

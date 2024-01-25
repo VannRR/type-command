@@ -153,7 +153,7 @@ export class Explosions {
     }
     const explosion = new Explosion(coords);
     this.all.push(explosion);
-    this.sound.playExplosionFX();
+    this.sound.playSoundFX("explosion");
   }
 
   public forEach(func: (explosion: Explosion) => void): void {

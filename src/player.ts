@@ -62,13 +62,13 @@ export default class Player {
           0,
           this.currentInput.length - 1
         );
-        this.sound.playBackspaceFX();
+        this.sound.playSoundFX("backspace");
       } else if (
         this.currentInput.length < PlayerConstants.MAX_INPUT_LENGTH &&
         (event.key === "!" || isAlphabeticalChar(event.key))
       ) {
         this.currentInput += event.key.toUpperCase();
-        this.sound.playTypingFX();
+        this.sound.playSoundFX("typing");
       }
     });
   }
