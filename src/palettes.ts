@@ -1,4 +1,4 @@
-import { HexColor, Palette } from "./types";
+import { Palette } from "./types";
 
 const PALETTES: Palette[] = [
   {
