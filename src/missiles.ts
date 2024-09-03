@@ -189,13 +189,16 @@ export class Missiles {
     this.cleared = this.all.length === 0;
   }
 
-  public checkCollision(other: CollisionObject): void {
+  public checkCollision(other: CollisionObject): boolean {
+    let collided = false;
     for (let i = this.all.length - 1; i >= 0; i--) {
       if (this.all[i].checkCollision(other)) {
         this.all.splice(i, 1);
         this.sound.playSoundFX("collision");
+        collided = true;
       }
     }
+    return collided;
   }
 
   public destroy(submittedInput: Option<string>): {

@@ -73,6 +73,10 @@ export default class Player {
     });
   }
 
+  public clearCurrentInput(): void {
+    this.currentInput = "";
+  }
+
   public getCurrentMatch(words: string[]): Option<number> {
     if (this.currentInput.length < PlayerConstants.MIN_INPUT_LENGTH) {
       return null;

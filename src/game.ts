@@ -153,7 +153,10 @@ export default class Game {
       );
 
       this.missiles.checkCollision(this.ground);
-      this.missiles.checkCollision(this.hill);
+      if (this.missiles.checkCollision(this.hill)) {
+        this.player.clearCurrentInput();
+        this.sound.playSoundFX("no-match");
+      }
       this.cities.forEach((city) => {
         this.missiles.checkCollision(city);
       });
