@@ -83,10 +83,10 @@ export default class Sound {
     const channel = this.getAvailableChannel();
     const buffer = this.allSoundFX.get(soundFX);
     if (channel === null || buffer === undefined) {
-      console.log({channel, soundFX, status: "null/undefined"});
+      // console.log({channel, soundFX, status: "null/undefined"});
       return;
     }
     this.startChannel(channel, buffer);
-    console.log({channel, soundFX, status: "good"});
+    // console.log({channel, soundFX, status: "good"});
   }
 }

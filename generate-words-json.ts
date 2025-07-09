@@ -1,6 +1,8 @@
+#!/usr/bin/env node
+import { promises as fs } from "fs";
 import { profanity } from "@2toad/profanity";
 
-/* 
+/*
   CAUTION, you are generating a json with an amount of strings equal to:
   (CHAR_COUNT_MAX - CHAR_COUNT_MIN) * WORD_COUNT
 */
@@ -8,84 +10,81 @@ import { profanity } from "@2toad/profanity";
 const CHAR_COUNT_MIN = 3;
 const CHAR_COUNT_MAX = 12;
 const WORD_COUNT = 500;
-const DICT_PATH = "/usr/share/dict/american-english";
+const DICT_PATH = "/usr/share/dict/american-english"; // words 2.1-8, A collection of International 'words' files for /usr/share/dict
+
 const JSON_OUTPUT_PATH = "./words.json";
 const JSON_INDENT = "    ";
 
 async function main() {
   const dictArray = await getDictArray();
-
   const allSortedWords: string[][] = [];
 
-  for (let i = CHAR_COUNT_MIN; i <= CHAR_COUNT_MAX; i++) {
-    const filteredDict = filterDictArray(dictArray, i);
-    const sortedRandomWords = getSortedRandomWords(filteredDict);
+  for (let len = CHAR_COUNT_MIN; len <= CHAR_COUNT_MAX; len++) {
+    const filtered = filterDictArray(dictArray, len);
+    const sortedRandomWords = getSortedRandomWords(filtered);
     allSortedWords.push(sortedRandomWords);
   }
 
-  await Bun.write(
+  await fs.writeFile(
     JSON_OUTPUT_PATH,
-    JSON.stringify(allSortedWords, null, JSON_INDENT)
+    JSON.stringify(allSortedWords, null, JSON_INDENT),
+    "utf8",
   );
+  console.log(`Wrote ${allSortedWords.length} lists to ${JSON_OUTPUT_PATH}`);
 }
 
-async function getDictArray(): Promise<string[]> {
-  const dictFile = Bun.file(DICT_PATH);
-  const dictString = await dictFile.text();
-
+async function getDictArray() {
+  const dictString = await fs.readFile(DICT_PATH, "utf8");
   return dictString.split("\n");
 }
 
-function isLowerCaseAlphabetical(str: string) {
-  if (str.length <= 1) {
-    return false;
-  }
+function isLowerCaseAlphabetical(str) {
+  if (str.length <= 1) return false;
   for (let i = 0; i < str.length; i++) {
-    const charCode = str.charCodeAt(i);
-    if (charCode < 97 || charCode > 122) {
-      return false;
-    }
+    const code = str.charCodeAt(i);
+    if (code < 97 || code > 122) return false;
   }
   return true;
 }
 
-function filterDictArray(dictArray: string[], wordLength: number): string[] {
-  const filteredDict = dictArray.filter(
-    (word) => word.length === wordLength && isLowerCaseAlphabetical(word)
+function filterDictArray(arr, wordLength) {
+  const filtered = arr.filter(
+    (w) => w.length === wordLength && isLowerCaseAlphabetical(w),
   );
 
-  if (filteredDict.length === 0) {
-    throw new Error(`No matches for filter of word length: ${wordLength}.`);
+  if (filtered.length === 0) {
+    throw new Error(`No matches for word length ${wordLength}`);
   }
-
-  return filteredDict;
+  return filtered;
 }
 
-function getSortedRandomWords(filteredDict: string[]): string[] {
-  if (filteredDict.length < WORD_COUNT) {
+function getSortedRandomWords(filtered: string[]): string[] {
+  if (filtered.length < WORD_COUNT) {
     throw new Error(
-      `Filtered dict length: ${filteredDict.length} needs to be greater then word count: ${WORD_COUNT}.`
+      `Need at least ${WORD_COUNT} words, but got ${filtered.length}`,
     );
   }
-  const randomWords: string[] = [];
+
+  const picked = new Set();
+  const result: string[] = [];
 
   for (let i = 0; i < WORD_COUNT * 20; i++) {
-    const randomIndex = Math.floor(Math.random() * filteredDict.length);
-    const randomWord = filteredDict[randomIndex];
-    if (
-      randomWords.includes(randomWord) === false &&
-      profanity.exists(randomWord) === false
-    ) {
-      randomWords.push(randomWord);
-    }
-    if (randomWords.length === WORD_COUNT) {
-      return randomWords.sort();
+    const word = filtered[Math.floor(Math.random() * filtered.length)];
+    if (!picked.has(word) && !profanity.exists(word)) {
+      picked.add(word);
+      result.push(word);
+      if (result.length === WORD_COUNT) {
+        return result.sort();
+      }
     }
   }
 
   throw new Error(
-    `Random words array has length: ${randomWords.length}, expects ${WORD_COUNT}.`
+    `Only collected ${result.length} unique clean words, expected ${WORD_COUNT}`,
   );
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
